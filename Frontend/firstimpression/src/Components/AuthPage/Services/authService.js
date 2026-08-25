@@ -48,6 +48,50 @@ export const resetPasswordApi = async (resetToken, newPassword) => {
     resetToken,
     newPassword,
   });
+  const data = response.data;
+  if (data?.response?.jwtToken) {
+    localStorage.setItem("jwtToken", data.response.jwtToken);
+  }
+  if (data?.response) {
+    const user = {
+      id: data.response.id,
+      name: data.response.name,
+      email: data.response.email,
+      subscriptionPlan: data.response.subscriptionPlan,
+      profileImageUrl: data.response.profileImageUrl,
+    };
+    localStorage.setItem("user", JSON.stringify(user));
+  }
+  return data;
+};
+
+/**
+ * Verify Email OTP API (New Account Registration)
+ */
+export const verifyEmailOtpApi = async (email, otp) => {
+  const response = await api.post("/api/auth/verify-email", { email, otp });
+  const data = response.data;
+  if (data?.response?.jwtToken) {
+    localStorage.setItem("jwtToken", data.response.jwtToken);
+  }
+  if (data?.response) {
+    const user = {
+      id: data.response.id,
+      name: data.response.name,
+      email: data.response.email,
+      subscriptionPlan: data.response.subscriptionPlan,
+      profileImageUrl: data.response.profileImageUrl,
+    };
+    localStorage.setItem("user", JSON.stringify(user));
+  }
+  return data;
+};
+
+/**
+ * Resend Email Verification OTP API
+ */
+export const resendVerificationApi = async (email) => {
+  const response = await api.post("/api/auth/resend-verification", { email });
   return response.data;
 };
 

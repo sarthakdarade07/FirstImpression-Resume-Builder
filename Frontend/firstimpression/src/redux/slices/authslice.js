@@ -34,6 +34,20 @@ const authSlice = createSlice({
         localStorage.removeItem("user");
       }
     },
+    setCredentials: (state, action) => {
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      if (action.payload.token) {
+        localStorage.setItem("jwtToken", action.payload.token);
+      } else {
+        localStorage.removeItem("jwtToken");
+      }
+      if (action.payload.user) {
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
+      } else {
+        localStorage.removeItem("user");
+      }
+    },
   },
 
   extraReducers: (builder) => {
@@ -50,7 +64,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, setUser } = authSlice.actions;
+export const { logout, setUser, setCredentials } = authSlice.actions;
 
 export default authSlice.reducer;
 

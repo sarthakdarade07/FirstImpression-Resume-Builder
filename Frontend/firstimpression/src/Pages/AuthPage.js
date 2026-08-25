@@ -72,7 +72,10 @@ const AuthPage = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="absolute inset-0 w-full h-full">
-            <SignUp onNavigateToLogin={() => navigate(routes.SIGNIN)} />
+            <SignUp
+              onNavigateToLogin={() => navigate(routes.SIGNIN)}
+              redirectTo={routes.DASHBOARD}
+            />
           </motion.div>
         )}
 
@@ -126,6 +129,7 @@ const AuthPage = () => {
               email={resetEmail}
               resetToken={resetToken}
               onBackToLogin={() => navigate(routes.SIGNIN)}
+              redirectTo={routes.DASHBOARD}
             />
           </motion.div>
         )}

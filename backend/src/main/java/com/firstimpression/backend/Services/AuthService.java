@@ -50,12 +50,15 @@ public class AuthService {
 		}
 
 		Users newUser = toUsers(request);
+		String otp = OtpService.generateOtp();
+		newUser.setOtp(otp);
+		newUser.setOtpExpires(LocalDateTime.now().plusMinutes(5));
 
 		// save in database
 		Users savedUser = usersRepository.save(newUser);
 
 		// Send mail for verification
-		sendVerificationEmail(newUser);
+		sendVerificationEmail(savedUser, otp);
 
 		return toResponse(savedUser);
 
@@ -64,70 +67,60 @@ public class AuthService {
 	private AuthResponse toResponse(Users savedUser) {
 		return AuthResponse.builder().id(savedUser.getId()).name(savedUser.getName()).email(savedUser.getEmail())
 				.profileImageUrl(savedUser.getProfileImageUrl()).subscriptionPlan(savedUser.getSubscriptionPlan())
-				.emailVerified(savedUser.isEmailVerified()).verificationToken(savedUser.getVerificationToken())
-				.verificationExpires(savedUser.getVerificationExpires()).createdAt(savedUser.getCreatedAt())
+				.emailVerified(savedUser.isEmailVerified()).createdAt(savedUser.getCreatedAt())
 				.updatedAt(savedUser.getUpdatedAt()).build();
 	}
 
 	private Users toUsers(RegisterRequest request) {
 		Users newUser = Users.builder().name(request.getName()).email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword())).profileImageUrl(request.getProfileImageUrl())
-				.subscriptionPlan(request.getSubscriptionPlan()).verificationToken(UUID.randomUUID().toString())
-				.verificationExpires(LocalDateTime.now().plusHours(24)).build();
+				.subscriptionPlan(request.getSubscriptionPlan()).emailVerified(false).build();
 
 		return newUser;
 	}
 
-	private void sendVerificationEmail(Users newUser) {
+	private void sendVerificationEmail(Users user, String otp) {
 
-		log.info("Inside Auth Service - Sending email verification{}", newUser);
+		log.info("Inside Auth Service - Sending email verification OTP to {}", user.getEmail());
 		try {
-			String link = appBaseUrl + "/api/auth/verify-email?token=" + newUser.getVerificationToken() + "&email="
-					+ newUser.getEmail();
-			String subject = "Verification mail for firstimpression";
-			String html = """
-					<div style="font-family: sans-serif; color: #333333; line-height: 1.5; text-align: center;">
+			ClassPathResource resource = new ClassPathResource("templates/email-verification-otp.html");
+			String html = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+			html = html.replace("{{NAME}}", user.getName() != null ? user.getName() : "there");
+			html = html.replace("{{OTP}}", otp);
 
-					    <!-- Add your image here -->
-					    <img src="https://i.postimg.cc/3NL560RX/loginpage.webp" alt="First Impression Logo" style="max-width: 250px; margin-bottom: 20px;">
-
-					    <h2>Verify your email</h2>
-					    <p>Hi %s,</p>
-					    <p>Please confirm your email address to activate your account by clicking the button below:</p>
-					    <p>
-					        <a href="%s" style="display: inline-block; padding: 10px 16px; background-color: #6366f1; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 10px 0;">
-					            Verify Email
-					        </a>
-					    </p>
-					    <p>Or copy and paste this link into your browser:</p>
-					    <p><a href="%s" style="color: #6366f1;">%s</a></p>
-					    <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">This link expires in 24 hours.</p>
-					</div>
-					"""
-					.formatted(newUser.getName(), link, link, link);
-
-			emailService.sendHtmlEmail(newUser.getEmail(), subject, html);
+			String subject = "Verify Your Email - First Impression";
+			emailService.sendHtmlEmail(user.getEmail(), subject, html);
 
 		} catch (Exception e) {
-			log.error("Error occured at the sending verification email", e.getMessage());
-			throw new RuntimeException("Faild to send verification mail" + e.getMessage());
+			log.error("Error occurred while sending verification email: {}", e.getMessage());
+			throw new RuntimeException("Failed to send verification mail: " + e.getMessage());
 		}
 	}
 
-	public void verifyEmail(String tkn) {
-		log.info("Inside AuthSerice verify email():{}", tkn);
-		Users user = usersRepository.findByVerificationToken(tkn)
-				.orElseThrow(() -> new RuntimeException("Invalid token"));
+	public AuthResponse verifyEmail(String email, String otp) {
+		log.info("Inside AuthService verifyEmail(): email={}, otp={}", email, otp);
+		Users user = usersRepository.findByEmailAndOtp(email, otp)
+				.orElseThrow(() -> new RuntimeException("Invalid OTP"));
 
-		if (user.getVerificationExpires() != null && user.getVerificationExpires().isBefore(LocalDateTime.now())) {
-			throw new RuntimeException("Verification token not valid!");
+		if (user.getOtp() == null || LocalDateTime.now().isAfter(user.getOtpExpires())) {
+			throw new RuntimeException("OTP has expired.");
+		}
+
+		if (!user.getOtp().equals(otp)) {
+			throw new RuntimeException("Wrong OTP.");
 		}
 
 		user.setEmailVerified(true);
-		user.setVerificationToken(null);
-		user.setVerificationExpires(null);
+		user.setOtp(null);
+		user.setOtpExpires(null);
 
-		usersRepository.save(user);
+		Users savedUser = usersRepository.save(user);
+
+		String jwt = jwtUtil.generateToken(savedUser.getId());
+		AuthResponse response = toResponse(savedUser);
+		response.setJwtToken(jwt);
+
+		return response;
 	}
 
 	public AuthResponse login(LoginRequest req) {
@@ -154,10 +147,9 @@ public class AuthService {
 
 	public void resendVerification(String email) {
 
-		log.info("Inside AuthSerive - resendVerification():{} ", email);
+		log.info("Inside AuthService - resendVerification():{} ", email);
 
 		// 1.find user by email
-
 		Users user = usersRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("This Email id not registered."));
 
@@ -166,17 +158,16 @@ public class AuthService {
 			throw new RuntimeException("Email is already Verififed.");
 		}
 
-		// 3. Set new verification token
-		user.setVerificationToken(UUID.randomUUID().toString());
-		user.setVerificationExpires(LocalDateTime.now().plusHours(24));
+		// 3. Set new OTP
+		String otp = OtpService.generateOtp();
+		user.setOtp(otp);
+		user.setOtpExpires(LocalDateTime.now().plusMinutes(5));
 
-		// 4 updater the user
-
+		// 4 update the user
 		usersRepository.save(user);
 
-		// 5.resend verification mail
-
-		sendVerificationEmail(user);
+		// 5. resend verification email with OTP
+		sendVerificationEmail(user, otp);
 
 	}
 
@@ -237,9 +228,9 @@ public class AuthService {
 
 	}
 
-	public void resetPassword(String resetToken, String newPassword) {
+	public AuthResponse resetPassword(String resetToken, String newPassword) {
 
-		log.info("Inside:AuthSerive-resetPassword():{}");
+		log.info("Inside AuthService-resetPassword()");
 
 		Users user = usersRepository.findByResetToken(resetToken)
 				.orElseThrow(() -> new RuntimeException("Token Invalid"));
@@ -248,14 +239,16 @@ public class AuthService {
 			throw new RuntimeException("Token Expired.");
 		}
 
-//		if (!user.getResetToken().equals(resetToken)) {
-//			throw new RuntimeException("Wrong Otp.");
-//		}
-
 		user.setResetToken(null);
 		user.setResetTokenExpires(null);
 		user.setPassword(passwordEncoder.encode(newPassword));
-		usersRepository.save(user);
+		Users savedUser = usersRepository.save(user);
+
+		String jwt = jwtUtil.generateToken(savedUser.getId());
+		AuthResponse response = toResponse(savedUser);
+		response.setJwtToken(jwt);
+
+		return response;
 
 	}
 

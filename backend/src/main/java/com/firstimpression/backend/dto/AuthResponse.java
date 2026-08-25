@@ -21,8 +21,6 @@ public class AuthResponse {
     private String profileImageUrl;
     private String subscriptionPlan;
     private boolean emailVerified;
-    private String verificationToken;
-    private LocalDateTime verificationExpires;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String JwtToken;

@@ -6,6 +6,8 @@ import SuccessToast from "../notifications/SuccessToast";
 import FailedToast from "../notifications/FailedToast";
 import useChangePassword from "./hooks/useChangePassword";
 
+import { routes } from "../../routes/routes";
+
 /**
  * ChangePassword
  * Pure UI component. All state and API logic lives in useChangePassword.
@@ -13,9 +15,17 @@ import useChangePassword from "./hooks/useChangePassword";
  * @param {Object} props
  * @param {string} props.email - email associated with the reset request (display only)
  * @param {string} props.resetToken - token used to authorize the password reset
- * @param {Function} props.onBackToLogin - callback to navigate back to login
+ * @param {Function} [props.onBackToLogin] - callback to navigate back to login
+ * @param {Function} [props.onSuccess] - callback invoked after a successful reset
+ * @param {string} [props.redirectTo=routes.DASHBOARD] - path to redirect to upon password reset
  */
-const ChangePassword = ({ email, resetToken, onBackToLogin }) => {
+const ChangePassword = ({
+  email,
+  resetToken,
+  onBackToLogin,
+  onSuccess,
+  redirectTo = routes.DASHBOARD,
+}) => {
   const {
     newPassword,
     confirmPassword,
@@ -32,7 +42,7 @@ const ChangePassword = ({ email, resetToken, onBackToLogin }) => {
     closeToast,
     clearError,
     handleChangePassword,
-  } = useChangePassword({ resetToken, onBackToLogin });
+  } = useChangePassword({ resetToken, onBackToLogin, onSuccess, redirectTo });
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-[var(--auth-bg-padding)] font-sans">

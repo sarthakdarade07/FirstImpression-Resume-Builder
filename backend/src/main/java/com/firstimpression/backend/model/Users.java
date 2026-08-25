@@ -88,16 +88,13 @@ public class Users {
     @Builder.Default
     private boolean emailVerified = false;
 
-    private String verificationToken;
-
-    private LocalDateTime verificationExpires;
-
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
     
-    private String otp=null;
+    @Builder.Default
+    private String otp = null;
     private LocalDateTime otpExpires;
     
     

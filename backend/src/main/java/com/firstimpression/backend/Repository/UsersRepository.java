@@ -13,8 +13,6 @@ public interface UsersRepository extends JpaRepository<Users, String> {
 	
  public Boolean existsByEmail(String email); 
  
- public Optional<Users> findByVerificationToken(String tkn);
- 
  Optional<Users> findByEmailAndOtp(String email, String otp);
  Optional<Users> findByResetToken(String tkn); 
 }

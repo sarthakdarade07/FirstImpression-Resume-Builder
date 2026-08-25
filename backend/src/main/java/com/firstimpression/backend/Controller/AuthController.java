@@ -57,15 +57,16 @@ public class AuthController {
 		
 	}
 	
-	@GetMapping(AppConstants.VERIFY_EMAIL)
-	public ResponseEntity<?> verifyEmail(@Valid @RequestParam String token){
-		log.info("Inside AuthController- verifyEmail():{}",token);
-
-		 authService.verifyEmail(token);
-		  
-		 return ResponseEntity.status(HttpStatus.FOUND)
-                 .location(URI.create("http://localhost:3000/?verified=true"))
-                 .build();
+	@PostMapping(AppConstants.VERIFY_EMAIL)
+	public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> req){
+		log.info("Inside AuthController- verifyEmail():{}", req);
+		String email = req.get("email");
+		String otp = req.get("otp");
+		if (email == null || otp == null) {
+			throw new RuntimeException("Email and OTP are required.");
+		}
+		AuthResponse response = authService.verifyEmail(email, otp);
+		return ResponseEntity.ok(Map.of("message", "Email verified successfully!", "response", response));
 	}
 	
 	@PostMapping(AppConstants.UPLOAD_IMAGE)
@@ -104,7 +105,6 @@ public class AuthController {
 	
 	
 	@PostMapping(AppConstants.RESEND_VERIFICATION)
-	
 	public ResponseEntity<?> resendVerification(@Valid @RequestBody Map<String,String> body){
 		
 		log.info("Inside AuthController - resendVerification():{} ",body);
@@ -115,12 +115,12 @@ public class AuthController {
          
 		//2.Verify if email is there
 		if(Objects.isNull(email)) {
-			return ResponseEntity.badRequest().body(Map.of("Message","Email is required"));
+			return ResponseEntity.badRequest().body(Map.of("message","Email is required"));
 		}
 		
 		authService.resendVerification(email);
 		
-		return ResponseEntity.ok().body(Map.of("message","Verification link sent on registered email."));
+		return ResponseEntity.ok().body(Map.of("message","Verification OTP sent on registered email."));
 		
 	}
 	
@@ -162,8 +162,8 @@ public class AuthController {
 	public ResponseEntity<?> resetPassword(@RequestBody Map<String,String> req){
 		log.info("Inside AuthController - resetPassword():{}",req);
            
-		authService.resetPassword(req.get("resetToken"), req.get("newPassword"));
-		return ResponseEntity.ok().body(Map.of("message","Password Changed."));
+		AuthResponse response = authService.resetPassword(req.get("resetToken"), req.get("newPassword"));
+		return ResponseEntity.ok().body(Map.of("message", "Password Changed.", "response", response));
 		
 	}
 
