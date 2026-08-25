@@ -3,20 +3,21 @@ import { Bell, Search, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserMenu from './UserMenu';
-import logo from "../../Assets/promotional/Firstimpression_icon_logo_copy.png"; 
-import { useUser } from '../../Contexts/UserContext';
+import logo from "../../assets/promotional/Firstimpression_icon_logo_copy.png"; 
+import { useSelector } from 'react-redux';
+import { routes } from '../../routes/routes';
 
 const tabs = ['My Resumes', 'Templates', 'ATS Score'];
 
 const DashboardNavbar = ({ activeTab = 'My Resumes', setActiveTab }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const {user }= useUser();
+  const user = useSelector((state) => state.auth.user) || localStorage.getItem('jwtToken');
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleTabClick = (tab) => {
-    if (location.pathname !== '/dashboard') {
-      navigate('/dashboard', { state: { activeTab: tab } });
+    if (location.pathname !== routes.DASHBOARD) {
+      navigate(routes.DASHBOARD, { state: { activeTab: tab } });
     } else {
       if (setActiveTab) setActiveTab(tab);
     }
@@ -37,16 +38,17 @@ const DashboardNavbar = ({ activeTab = 'My Resumes', setActiveTab }) => {
           {/* Left Side: Logo & Tabs */}
           <div className="flex items-center gap-6 lg:gap-10">
             <div className="flex items-center gap-3 md:gap-4">
-              {location.pathname !== '/dashboard' && (
+              {location.pathname !== routes.DASHBOARD && (
                 <button 
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate(routes.DASHBOARD)}
                   className="p-1.5 md:p-2 bg-[var(--bg-surface-hover)] rounded-xl border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--theme-red-start)] hover:border-[var(--theme-red-start)]/30 hover:bg-[var(--theme-red-start)]/10 transition-all shadow-sm flex items-center justify-center shrink-0"
                   title="Back to Dashboard"
                 >
                   <ArrowLeft className="w-5 h-5 md:w-5 md:h-5" strokeWidth={2.5} />
                 </button>
               )}
-              <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')}>
+              <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate(routes.DASHBOARD)}>
+
               <img 
                  src = {logo}
                 alt="FirstImpression Logo" 

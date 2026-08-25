@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,12 +26,18 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET status = 0 WHERE id = ?")
+@SQLRestriction("status = 1")
 @Getter
 @Setter
 @Builder 
 @NoArgsConstructor
 @AllArgsConstructor
 public class Users { 
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer status = 1; 
 
 	//======================= Key mapping   ======================================
     @Id

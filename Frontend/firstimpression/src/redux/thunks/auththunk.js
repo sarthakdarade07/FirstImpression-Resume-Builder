@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { loginUserApi } from "../Services/authService";
+import { loginUserApi } from "../../components/authPage/services/authService";
 
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
@@ -19,7 +19,7 @@ export const loginUser = createAsyncThunk(
                    profileImageUrl: data.response.profileImageUrl,
                 };
 
-                const token = data.token;
+                const token = data.response.jwtToken;
 
                 return{
                     token,
@@ -33,3 +33,4 @@ export const loginUser = createAsyncThunk(
         }
     }
 )   
+

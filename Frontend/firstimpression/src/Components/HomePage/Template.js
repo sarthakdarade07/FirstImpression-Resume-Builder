@@ -1,11 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, LayoutTemplate, Briefcase, ChevronRight, CheckCircle2 } from 'lucide-react';
-import Resume1 from '../../Assets/images/reume/reume-1.webp';
-import Resume2 from '../../Assets/images/reume/reume-2.webp';
-import Resume3 from '../../Assets/images/reume/reume-3.webp';
-import Resume4 from '../../Assets/images/reume/reume-4.webp';
+import { useNavigate } from 'react-router-dom';
+import Resume1 from '../../assets/images/reume/reume-1.webp';
+import Resume2 from '../../assets/images/reume/reume-2.webp';
+import Resume3 from '../../assets/images/reume/reume-3.webp';
+import Resume4 from '../../assets/images/reume/reume-4.webp';
+import { routes } from '../../routes/routes';
+
 const Template = () => {
+  const navigate = useNavigate();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -15,6 +19,7 @@ const Template = () => {
       },
     },
   };
+
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -144,7 +149,10 @@ const Template = () => {
             </div>
 
             <motion.div variants={itemVariants} className=" flex justify-center w-full">
-              <button className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white transition-all duration-300 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] border border-transparent rounded-full hover:shadow-lg hover:shadow-red-500/30 transform  focus:outline-none">
+              <button 
+                onClick={() => navigate(routes.TEMPLATES)}
+                className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white transition-all duration-300 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] border border-transparent rounded-full hover:shadow-lg hover:shadow-red-500/30 transform focus:outline-none"
+              >
                 Walk through more
                 <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </button>

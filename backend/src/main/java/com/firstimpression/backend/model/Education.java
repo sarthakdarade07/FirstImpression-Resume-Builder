@@ -2,6 +2,9 @@ package com.firstimpression.backend.model;
 
 import java.math.BigDecimal;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -22,9 +25,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-
-@Table(name = "education")
+@Table(name = "educations")
+@SQLDelete(sql = "UPDATE educations SET status = 0 WHERE id = ?")
+@SQLRestriction("status = 1")
 public class Education {
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer status = 1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

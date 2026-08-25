@@ -1,42 +1,28 @@
-// src/hooks/useLogin.js
-
 import { useState } from "react";
-
 import { useDispatch } from "react-redux";
-
 import { useNavigate } from "react-router-dom";
-
-import { loginUser } from "../redux/thunk";
+import { loginUser } from "../../../redux/thunks/auththunk";
+import { routes } from "../../../routes/routes";
 
 const useLogin = ({ onNavigateToForgotPassword }) => {
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
 
   const [emailOrUsername, setEmailOrUsername] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
-
   const [error, setError] = useState("");
-
   const [showToast, setShowToast] = useState(false);
-
   const [msg, setMsg] = useState("");
-
 
   const handleEmailChange = (e) => {
     setEmailOrUsername(e.target.value);
-
     setError("");
   };
 
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
-
     setError("");
   };
 
@@ -48,30 +34,23 @@ const useLogin = ({ onNavigateToForgotPassword }) => {
     onNavigateToForgotPassword();
   };
 
-
   const handleLogin = async (e) => {
     e.preventDefault();
-
     setError("");
 
     if (!emailOrUsername.trim()) {
       setError("Please enter your email or username.");
-
       return;
     }
 
     if (!password.trim()) {
       setError("Please enter your password.");
-
       return;
     }
-
 
     setIsLoading(true);
 
     try {
-  
-
       await dispatch(
         loginUser({
           email: emailOrUsername,
@@ -80,10 +59,8 @@ const useLogin = ({ onNavigateToForgotPassword }) => {
       ).unwrap();
 
       setMsg("Login successful!");
-
       setShowToast(true);
-
-      navigate("/dashboard");
+      navigate(routes.DASHBOARD);
     } catch (errorMessage) {
       setError(errorMessage || "Invalid credentials");
     } finally {

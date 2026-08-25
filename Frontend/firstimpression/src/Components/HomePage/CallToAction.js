@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { routes } from '../../routes/routes';
 
 const CallToAction = () => {
+  const navigate = useNavigate();
   return (
     <section className="py-24 bg-white relative overflow-hidden">
       {/* Background decorations */}
@@ -38,7 +41,10 @@ const CallToAction = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <button className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] text-white rounded-full font-semibold text-lg hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2">
+              <button 
+                onClick={() => navigate(routes.SIGNUP)}
+                className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] text-white rounded-full font-semibold text-lg hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2"
+              >
                 Start for Free
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>

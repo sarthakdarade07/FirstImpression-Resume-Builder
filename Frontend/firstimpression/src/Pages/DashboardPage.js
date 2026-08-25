@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Plus, FileText, MoreVertical, LayoutTemplate, ShieldCheck, TrendingUp, Users, Clock, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import DashboardLayout from '../Components/dashboard/DashboardLayout';
-import { useUser } from '../Contexts/UserContext';
+import DashboardLayout from '../components/dashboard/DashboardLayout';
+import { useSelector } from 'react-redux';
 
 const DashboardPage = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'My Resumes');
-  const { user } = useUser();
+  const user = useSelector((state) => state.auth.user);
 
   const containerVariants = {
     hidden: { opacity: 0 },

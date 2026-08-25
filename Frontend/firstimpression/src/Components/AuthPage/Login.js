@@ -1,19 +1,16 @@
 // src/Components/Login.jsx
 
 import React from "react";
-
 import { User, EyeOff, Eye, LogIn, ChevronDown } from "lucide-react";
-
-import mainImage from "../../Assets/promotional/loginpage.webp";
-
-import icon_logo from "../../Assets/promotional/Firstimpression_icon_logo.webp";
-
-import SuccessToast from "../Notifications/SuccessToast";
-import FailedToast from "../Notifications/FailedToast";
-
+import mainImage from "../../assets/promotional/loginpage.webp";
+import icon_logo from "../../assets/promotional/Firstimpression_icon_logo.webp";
+import SuccessToast from "../notifications/SuccessToast";
+import FailedToast from "../notifications/FailedToast";
 import { HashLink } from "react-router-hash-link";
+import useLogin from "./hooks/useLogin";
+import { routes } from "../../routes/routes";
 
-import useLogin from "./Hooks/useLogin";
+
 
 const Login = ({ onNavigateToSignUp, onNavigateToForgotPassword }) => {
   const {
@@ -105,10 +102,9 @@ const Login = ({ onNavigateToSignUp, onNavigateToForgotPassword }) => {
                   firstimpression
                 </span>
               </div>
-
               <HashLink
                 smooth
-                to="/sign-up"
+                to={routes.SIGNUP}
                 className="flex items-center gap-1.5 sm:gap-2 text-gray-500 hover:text-[#FF5A00] font-medium transition-colors text-xs sm:text-sm">
                 <User size={18} strokeWidth={1.5} />
                 Sign Up

@@ -248,9 +248,9 @@ public class AuthService {
 			throw new RuntimeException("Token Expired.");
 		}
 
-		if (!user.getResetToken().equals(resetToken)) {
-			throw new RuntimeException("Wrong Otp.");
-		}
+//		if (!user.getResetToken().equals(resetToken)) {
+//			throw new RuntimeException("Wrong Otp.");
+//		}
 
 		user.setResetToken(null);
 		user.setResetTokenExpires(null);

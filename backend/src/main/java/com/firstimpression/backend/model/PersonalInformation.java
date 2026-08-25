@@ -1,5 +1,8 @@
 package com.firstimpression.backend.model;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -17,13 +20,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name="personal_information")
+@Table(name="personal_informations")
+@SQLDelete(sql = "UPDATE personal_informations SET status = 0 WHERE id = ?")
+@SQLRestriction("status = 1")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class PersonalInformation {
+
+	@Builder.Default
+	@Column(nullable = false)
+	private Integer status = 1;
 
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)

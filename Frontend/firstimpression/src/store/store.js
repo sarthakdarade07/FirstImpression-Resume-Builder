@@ -1,12 +1,12 @@
-// src/redux/store.js
-
+// src/store/store.js
 import { configureStore } from "@reduxjs/toolkit";
-
-import authReducer from "../Components/AuthPage/redux/slice";
+import authReducer from "../redux/slices/authslice";
+import metadataReducer from "../redux/slices/metadataSlice";
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
+    metadata: metadataReducer,
   },
 });
 

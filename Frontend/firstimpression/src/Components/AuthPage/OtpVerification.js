@@ -1,83 +1,38 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import mainImage from "../../Assets/promotional/loginpage.webp";
-import icon_logo from "../../Assets/promotional/Firstimpression_icon_logo.webp";
-import SuccessToast from "../Notifications/SuccessToast";
-import FailedToast from "../Notifications/FailedToast";
+import mainImage from "../../assets/promotional/loginpage.webp";
+import icon_logo from "../../assets/promotional/Firstimpression_icon_logo.webp";
+import SuccessToast from "../notifications/SuccessToast";
+import FailedToast from "../notifications/FailedToast";
+import useOtpVerification from "./hooks/useOtpVerification";
 
-const OtpVerification = ({ email, onBackToLogin, onNavigateToChangePassword }) => {
-  const [otp, setOtp] = useState(new Array(6).fill(""));
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showToast, setShowToast] = useState(false);
-  const [msg, setMsg] = useState("");
-  const inputRefs = useRef([]);
-  const API_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
-
-
-  useEffect(() => {
-    if (inputRefs.current[0]) {
-      inputRefs.current[0].focus();
-    }
-  }, []);
-
-  const handleChange = (element, index) => {
-    if (isNaN(element.value)) return false;
-
-    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
-
-    // Focus next input
-    if (element.nextSibling && element.value !== "") {
-      element.nextSibling.focus();
-    }
-  };
-
-  const handleKeyDown = (e, index) => {
-    if (e.key === "Backspace") {
-      if (otp[index] === "" && e.target.previousSibling) {
-        e.target.previousSibling.focus();
-      }
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      handleVerifyOtp();
-    }
-  };
-
-  const handleVerifyOtp = async (e) => {
-    if (e) e.preventDefault();
-    const otpValue = otp.join("");
-    if (otpValue.length < 6) {
-      setError("Please enter the 6-digit OTP.");
-      return;
-    }
-    
-    setIsLoading(true); 
-    setError("");
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, otp: otpValue }),
-      });
-        const data = await response.json();
-      if (!response.ok) {
-        setError(data.error || "Invalid or expired OTP");
-      } else {
-        setMsg(data.message || "OTP verified successfully!");
-        setShowToast(true);
-        setTimeout(() => {
-          onNavigateToChangePassword(email, data.response.resetToken);
-        }, 2000);
-      }
-    } catch (err) {
-      setError(err.message || "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+/**
+ * OtpVerification
+ * Pure UI component. All state and API logic lives in useOtpVerification.
+ *
+ * @param {Object} props
+ * @param {string} props.email - email the OTP was sent to (display only + passed to the hook)
+ * @param {Function} props.onBackToLogin - callback to navigate back to login
+ * @param {Function} props.onNavigateToChangePassword - callback to navigate to Change Password screen, called with (email, resetToken)
+ */
+const OtpVerification = ({
+  email,
+  onBackToLogin,
+  onNavigateToChangePassword,
+}) => {
+  const {
+    otp,
+    isLoading,
+    error,
+    showToast,
+    msg,
+    inputRefs,
+    handleChange,
+    handleKeyDown,
+    handleVerifyOtp,
+    closeToast,
+    clearError,
+  } = useOtpVerification({ email, onNavigateToChangePassword });
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-[var(--auth-bg-padding)] font-sans">
@@ -113,9 +68,15 @@ const OtpVerification = ({ email, onBackToLogin, onNavigateToChangePassword }) =
           <div className="flex flex-col min-h-full justify-between gap-8">
             {/* Header */}
             <div className="flex justify-between items-center mb-8 md:mb-0">
-              <div className="flex items-center cursor-pointer" onClick={onBackToLogin}>
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={onBackToLogin}>
                 <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full border-[3px] sm:border-[3.5px] border-transparent shrink-0">
-                  <img src={icon_logo} alt="Logo" className="h-full w-full justify-center" />
+                  <img
+                    src={icon_logo}
+                    alt="Logo"
+                    className="h-full w-full justify-center"
+                  />
                 </div>
                 <span className="text-xl sm:text-[1.35rem] font-bold tracking-tight text-gray-900 ml-2">
                   firstimpression
@@ -136,7 +97,8 @@ const OtpVerification = ({ email, onBackToLogin, onNavigateToChangePassword }) =
                 Verify OTP
               </h2>
               <p className="text-gray-500 mb-8 sm:mb-10 text-center md:text-left">
-                We have sent a 6-digit OTP to your email: <br/> <span className="font-semibold text-gray-800">{email}</span>
+                We have sent a 6-digit OTP to your email: <br />{" "}
+                <span className="font-semibold text-gray-800">{email}</span>
               </p>
 
               <form className="space-y-6" onSubmit={handleVerifyOtp}>
@@ -150,9 +112,9 @@ const OtpVerification = ({ email, onBackToLogin, onNavigateToChangePassword }) =
                         maxLength="1"
                         key={index}
                         value={data}
-                        onChange={e => handleChange(e.target, index)}
-                        onKeyDown={e => handleKeyDown(e, index)}
-                        ref={el => inputRefs.current[index] = el}
+                        onChange={(e) => handleChange(e.target, index)}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
+                        ref={(el) => (inputRefs.current[index] = el)}
                       />
                     );
                   })}
@@ -167,22 +129,19 @@ const OtpVerification = ({ email, onBackToLogin, onNavigateToChangePassword }) =
                 </button>
 
                 <p className="text-center text-sm text-gray-500 mt-4">
-                  Didn't receive code? <button type="button" className="text-theme-red-hover hover:underline font-medium">Resend OTP</button>
+                  Didn't receive code?{" "}
+                  <button
+                    type="button"
+                    className="text-theme-red-hover hover:underline font-medium">
+                    Resend OTP
+                  </button>
                 </p>
 
                 {showToast && (
-                  <SuccessToast
-                    message={msg}
-                    onClose={() => setShowToast(false)}
-                  />
+                  <SuccessToast message={msg} onClose={closeToast} />
                 )}
 
-                {error && (
-                  <FailedToast
-                    message={error}
-                    onClose={() => setError("")}
-                  />
-                )}
+                {error && <FailedToast message={error} onClose={clearError} />}
               </form>
             </div>
           </div>

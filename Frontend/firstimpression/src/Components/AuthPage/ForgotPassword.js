@@ -1,49 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
 import { ArrowLeft, Mail } from "lucide-react";
-import mainImage from "../../Assets/promotional/loginpage.webp";
-import icon_logo from "../../Assets/promotional/Firstimpression_icon_logo.webp";
-import SuccessToast from "../Notifications/SuccessToast";
-import FailedToast from "../Notifications/FailedToast";
+import mainImage from "../../assets/promotional/loginpage.webp";
+import icon_logo from "../../assets/promotional/Firstimpression_icon_logo.webp";
+import SuccessToast from "../notifications/SuccessToast";
+import FailedToast from "../notifications/FailedToast";
+import useForgotPassword from "./hooks/useForgotPassword";
 
+/**
+ * ForgotPassword
+ * Pure UI component. All state and API logic lives in useForgotPassword.
+ *
+ * @param {Object} props
+ * @param {Function} props.onBackToLogin - callback to navigate back to login
+ * @param {Function} props.onNavigateToOtp - callback to navigate to OTP screen, called with the email
+ */
 const ForgotPassword = ({ onBackToLogin, onNavigateToOtp }) => {
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showToast, setShowToast] = useState(false);
-  const [msg, setMsg] = useState("");
-  const API_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
-
-  const handleGetOtp = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-         setError(data.error);
-      } else {
-        setMsg(data.message || "OTP sent successfully!");
-        setShowToast(true);
-        setTimeout(() => {
-          onNavigateToOtp(email);
-        }, 2000); // Navigate to OTP after 2 seconds
-      }
-    } catch (err) {
-      setError(err.message || "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    email,
+    isLoading,
+    error,
+    showToast,
+    msg,
+    setEmail,
+    closeToast,
+    clearError,
+    handleGetOtp,
+  } = useForgotPassword({ onNavigateToOtp });
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-[var(--auth-bg-padding)] font-sans">
@@ -79,9 +61,15 @@ const ForgotPassword = ({ onBackToLogin, onNavigateToOtp }) => {
           <div className="flex flex-col min-h-full justify-between gap-8">
             {/* Header */}
             <div className="flex justify-between items-center mb-8 md:mb-0">
-              <div className="flex items-center cursor-pointer" onClick={onBackToLogin}>
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={onBackToLogin}>
                 <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full border-[3px] sm:border-[3.5px] border-transparent shrink-0">
-                  <img src={icon_logo} alt="Logo" className="h-full w-full justify-center" />
+                  <img
+                    src={icon_logo}
+                    alt="Logo"
+                    className="h-full w-full justify-center"
+                  />
                 </div>
                 <span className="text-xl sm:text-[1.35rem] font-bold tracking-tight text-gray-900 ml-2">
                   firstimpression
@@ -102,7 +90,8 @@ const ForgotPassword = ({ onBackToLogin, onNavigateToOtp }) => {
                 Forgot Password
               </h2>
               <p className="text-gray-500 mb-8 sm:mb-10 text-center md:text-left">
-                Enter your email address and we'll send you a 6-digit OTP to reset your password.
+                Enter your email address and we'll send you a 6-digit OTP to
+                reset your password.
               </p>
 
               <form className="space-y-4 sm:space-y-5" onSubmit={handleGetOtp}>
@@ -126,18 +115,10 @@ const ForgotPassword = ({ onBackToLogin, onNavigateToOtp }) => {
                 </button>
 
                 {showToast && (
-                  <SuccessToast
-                    message={msg}
-                    onClose={() => setShowToast(false)}
-                  />
+                  <SuccessToast message={msg} onClose={closeToast} />
                 )}
 
-                {error && (
-                  <FailedToast
-                    message={error}
-                    onClose={() => setError("")}
-                  />
-                )}
+                {error && <FailedToast message={error} onClose={clearError} />}
               </form>
             </div>
           </div>

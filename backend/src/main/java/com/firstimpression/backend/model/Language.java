@@ -1,5 +1,8 @@
 package com.firstimpression.backend.model;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -21,7 +24,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "languages")
+@SQLDelete(sql = "UPDATE languages SET status = 0 WHERE id = ?")
+@SQLRestriction("status = 1")
 public class Language {
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer status = 1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -6,6 +6,9 @@ import java.util.List;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -29,10 +32,14 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-
-@Table(name= "work_experience")
-
+@Table(name= "work_experiences")
+@SQLDelete(sql = "UPDATE work_experiences SET status = 0 WHERE id = ?")
+@SQLRestriction("status = 1")
 public class WorkExperience {
+
+	@Builder.Default
+	@Column(nullable = false)
+	private Integer status = 1;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

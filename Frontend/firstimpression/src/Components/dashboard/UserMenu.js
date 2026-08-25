@@ -2,12 +2,22 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Settings, LogOut, FileText, ChevronRight, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../Contexts/UserContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { routes } from '../../routes/routes';
+import { logout } from '../../redux/slices/authslice';
 
 const UserMenu = ({ isOpen, onClose}) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const menuRef = useRef(null);
-  const {user} = useUser();
+  const user = useSelector((state) => state.auth.user) || localStorage.getItem('jwtToken');
+
+  const handleLogout = () => {
+    onClose();
+    dispatch(logout());
+    navigate(routes.SIGNIN, { replace: true });
+  };
+
   // Close the dropdown when clicking anywhere outside of it
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -66,7 +76,7 @@ const UserMenu = ({ isOpen, onClose}) => {
                 icon: User,
                 label: "My Profile",
                 desc: "Personal details & info",
-                action: () => { onClose(); navigate('/profile'); }
+                action: () => { onClose(); navigate(routes.PROFILE); }
               },
               {
                 icon: FileText,
@@ -77,7 +87,7 @@ const UserMenu = ({ isOpen, onClose}) => {
                 icon: Settings,
                 label: "Account Settings",
                 desc: "Preferences & security",
-                action: () => { onClose(); navigate('/account'); }
+                action: () => { onClose(); navigate(routes.ACCOUNT); }
               },
               {
                 icon: HelpCircle,
@@ -119,7 +129,10 @@ const UserMenu = ({ isOpen, onClose}) => {
 
           {/* Footer Action Area */}
           <div className="p-2 border-t border-gray-100 bg-gray-50/50 shrink-0">
-            <button className="flex items-center justify-center gap-2 w-full p-2.5 text-gray-500 hover:text-white hover:bg-[var(--theme-red)] rounded-xl transition-all text-sm font-semibold shadow-sm border border-transparent hover:shadow-md hover:shadow-[var(--theme-red)]/20 group">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center justify-center gap-2 w-full p-2.5 text-gray-500 hover:text-white hover:bg-[var(--theme-red)] rounded-xl transition-all text-sm font-semibold shadow-sm border border-transparent hover:shadow-md hover:shadow-[var(--theme-red)]/20 group"
+            >
               <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               Sign Out
             </button>

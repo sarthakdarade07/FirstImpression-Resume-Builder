@@ -1,57 +1,38 @@
-import React, { useState } from "react";
+import React from "react";
 import { ArrowLeft, Lock, Eye, EyeOff } from "lucide-react";
-import mainImage from "../../Assets/promotional/loginpage.webp";
-import icon_logo from "../../Assets/promotional/Firstimpression_icon_logo.webp";
-import SuccessToast from "../Notifications/SuccessToast";
-import FailedToast from "../Notifications/FailedToast";
+import mainImage from "../../assets/promotional/loginpage.webp";
+import icon_logo from "../../assets/promotional/Firstimpression_icon_logo.webp";
+import SuccessToast from "../notifications/SuccessToast";
+import FailedToast from "../notifications/FailedToast";
+import useChangePassword from "./hooks/useChangePassword";
+
+/**
+ * ChangePassword
+ * Pure UI component. All state and API logic lives in useChangePassword.
+ *
+ * @param {Object} props
+ * @param {string} props.email - email associated with the reset request (display only)
+ * @param {string} props.resetToken - token used to authorize the password reset
+ * @param {Function} props.onBackToLogin - callback to navigate back to login
+ */
 const ChangePassword = ({ email, resetToken, onBackToLogin }) => {
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showToast, setShowToast] = useState(false);
-  const [msg, setMsg] = useState("");
-  const API_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
-
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match!");
-      return;
-    }
-    
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({resetToken, newPassword }),
-      });
-
-        const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error);
-      } else {
-        setMsg(data.message || "Password changed successfully!");
-        setShowToast(true);
-        setTimeout(() => {
-          onBackToLogin();
-        }, 2000);
-      }
-    } catch (err) {
-      setError(err.message || "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    newPassword,
+    confirmPassword,
+    showPassword,
+    showConfirmPassword,
+    isLoading,
+    error,
+    showToast,
+    msg,
+    setNewPassword,
+    setConfirmPassword,
+    toggleShowPassword,
+    toggleShowConfirmPassword,
+    closeToast,
+    clearError,
+    handleChangePassword,
+  } = useChangePassword({ resetToken, onBackToLogin });
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-[var(--auth-bg-padding)] font-sans">
@@ -87,9 +68,15 @@ const ChangePassword = ({ email, resetToken, onBackToLogin }) => {
           <div className="flex flex-col min-h-full justify-between gap-8">
             {/* Header */}
             <div className="flex justify-between items-center mb-8 md:mb-0">
-              <div className="flex items-center cursor-pointer" onClick={onBackToLogin}>
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={onBackToLogin}>
                 <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full border-[3px] sm:border-[3.5px] border-transparent shrink-0">
-                  <img src={icon_logo} alt="Logo" className="h-full w-full justify-center" />
+                  <img
+                    src={icon_logo}
+                    alt="Logo"
+                    className="h-full w-full justify-center"
+                  />
                 </div>
                 <span className="text-xl sm:text-[1.35rem] font-bold tracking-tight text-gray-900 ml-2">
                   firstimpression
@@ -110,10 +97,13 @@ const ChangePassword = ({ email, resetToken, onBackToLogin }) => {
                 Reset Password
               </h2>
               <p className="text-gray-500 mb-8 sm:mb-10 text-center md:text-left">
-                Enter a new password for <span className="font-semibold text-gray-800">{email}</span>.
+                Enter a new password for{" "}
+                <span className="font-semibold text-gray-800">{email}</span>.
               </p>
 
-              <form className="space-y-4 sm:space-y-5" onSubmit={handleChangePassword}>
+              <form
+                className="space-y-4 sm:space-y-5"
+                onSubmit={handleChangePassword}>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -125,9 +115,13 @@ const ChangePassword = ({ email, resetToken, onBackToLogin }) => {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={toggleShowPassword}
                     className="absolute right-5 sm:right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-500 transition-colors">
-                    {showPassword ? <Eye size={20} strokeWidth={1.5} /> : <EyeOff size={20} strokeWidth={1.5} />}
+                    {showPassword ? (
+                      <Eye size={20} strokeWidth={1.5} />
+                    ) : (
+                      <EyeOff size={20} strokeWidth={1.5} />
+                    )}
                   </button>
                 </div>
 
@@ -142,9 +136,13 @@ const ChangePassword = ({ email, resetToken, onBackToLogin }) => {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={toggleShowConfirmPassword}
                     className="absolute right-5 sm:right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-500 transition-colors">
-                    {showConfirmPassword ? <Eye size={20} strokeWidth={1.5} /> : <EyeOff size={20} strokeWidth={1.5} />}
+                    {showConfirmPassword ? (
+                      <Eye size={20} strokeWidth={1.5} />
+                    ) : (
+                      <EyeOff size={20} strokeWidth={1.5} />
+                    )}
                   </button>
                 </div>
 
@@ -157,18 +155,10 @@ const ChangePassword = ({ email, resetToken, onBackToLogin }) => {
                 </button>
 
                 {showToast && (
-                  <SuccessToast
-                    message={msg}
-                    onClose={() => setShowToast(false)}
-                  />
+                  <SuccessToast message={msg} onClose={closeToast} />
                 )}
 
-                {error && (
-                  <FailedToast
-                    message={error}
-                    onClose={() => setError("")}
-                  />
-                )}
+                {error && <FailedToast message={error} onClose={clearError} />}
               </form>
             </div>
           </div>

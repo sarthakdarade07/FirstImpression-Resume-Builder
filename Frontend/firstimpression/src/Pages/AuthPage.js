@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
-import Login from "../Components/AuthPage/Login";
-import SignUp from "../Components/AuthPage/SignUp";
-import ForgotPassword from "../Components/AuthPage/ForgotPassword";
-import OtpVerification from "../Components/AuthPage/OtpVerification";
-import ChangePassword from "../Components/AuthPage/ChangePassword";
-import SuccessToast from "../Components/Notifications/SuccessToast";
+import Login from "../components/authPage/Login";
+import SignUp from "../components/authPage/SignUp";
+import ForgotPassword from "../components/authPage/ForgotPassword";
+import OtpVerification from "../components/authPage/OtpVerification";
+import ChangePassword from "../components/authPage/ChangePassword";
+import SuccessToast from "../components/notifications/SuccessToast";
+import { routes } from "../routes/routes";
 
 const AuthPage = () => {
   const location = useLocation();
@@ -15,10 +16,10 @@ const AuthPage = () => {
   
   const getView = () => {
     const path = location.pathname;
-    if (path === "/sign-up") return "signup";
-    if (path === "/forgot-password") return "forgotPassword";
-    if (path === "/otp") return "otp";
-    if (path === "/change-password") return "changePassword";
+    if (path === routes.SIGNUP) return "signup";
+    if (path === routes.FORGOT_PASSWORD) return "forgotPassword";
+    if (path === routes.OTP) return "otp";
+    if (path === routes.CHANGE_PASSWORD) return "changePassword";
     return "login";
   };
   
@@ -57,8 +58,8 @@ const AuthPage = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="absolute inset-0 w-full h-full">
             <Login
-              onNavigateToSignUp={() => navigate("/sign-up")}
-              onNavigateToForgotPassword={() => navigate("/forgot-password")}
+              onNavigateToSignUp={() => navigate(routes.SIGNUP)}
+              onNavigateToForgotPassword={() => navigate(routes.FORGOT_PASSWORD)}
             />
           </motion.div>
         )}
@@ -71,7 +72,7 @@ const AuthPage = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="absolute inset-0 w-full h-full">
-            <SignUp onNavigateToLogin={() => navigate("/sign-in")} />
+            <SignUp onNavigateToLogin={() => navigate(routes.SIGNIN)} />
           </motion.div>
         )}
 
@@ -84,10 +85,10 @@ const AuthPage = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="absolute inset-0 w-full h-full">
             <ForgotPassword
-              onBackToLogin={() => navigate("/sign-in")}
+              onBackToLogin={() => navigate(routes.SIGNIN)}
               onNavigateToOtp={(email) => {
                 setResetEmail(email);
-                navigate("/otp", { state: { email } });
+                navigate(routes.OTP, { state: { email } });
               }}
             />
           </motion.div>
@@ -103,11 +104,11 @@ const AuthPage = () => {
             className="absolute inset-0 w-full h-full">
             <OtpVerification
               email={resetEmail}
-              onBackToLogin={() => navigate("/sign-in")}
+              onBackToLogin={() => navigate(routes.SIGNIN)}
               onNavigateToChangePassword={(email, token) => {
                 setResetEmail(email);
                 setResetToken(token);
-                navigate("/change-password", { state: { email, token } });
+                navigate(routes.CHANGE_PASSWORD, { state: { email, token } });
               }}
             />
           </motion.div>
@@ -124,7 +125,7 @@ const AuthPage = () => {
             <ChangePassword
               email={resetEmail}
               resetToken={resetToken}
-              onBackToLogin={() => navigate("/sign-in")}
+              onBackToLogin={() => navigate(routes.SIGNIN)}
             />
           </motion.div>
         )}
@@ -132,5 +133,6 @@ const AuthPage = () => {
     </div>
   );
 };
+
 
 export default AuthPage;

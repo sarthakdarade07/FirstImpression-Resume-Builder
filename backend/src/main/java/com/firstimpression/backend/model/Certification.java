@@ -2,6 +2,9 @@ package com.firstimpression.backend.model;
 
 import java.time.LocalDate;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -23,7 +26,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "certifications")
+@SQLDelete(sql = "UPDATE certifications SET status = 0 WHERE id = ?")
+@SQLRestriction("status = 1")
 public class Certification {
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer status = 1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

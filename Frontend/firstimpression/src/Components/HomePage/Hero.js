@@ -1,9 +1,12 @@
 import React from "react";
 import { Sparkles, ArrowRight, FileText, Target, Briefcase, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import HeroVideo from "../../Assets/videos/firstimpression-hero_video.webm";
+import { useNavigate } from "react-router-dom";
+import HeroVideo from "../../assets/videos/firstimpression-hero_video.webm";
+import { routes } from "../../routes/routes";
 
 export default function Hero({ isSplashFinished = true }) {
+  const navigate = useNavigate();
   const features = [
     { icon: <Zap className="w-5 h-5 text-[var(--theme-red)]" />, text: "Lightning Fast" },
     { icon: <Target className="w-5 h-5 text-[var(--theme-red)]" />, text: "ATS-Friendly" },
@@ -47,11 +50,17 @@ export default function Hero({ isSplashFinished = true }) {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] text-white rounded-full font-semibold text-lg hover:shadow-lg hover:shadow-red-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+              <button 
+                onClick={() => navigate(routes.SIGNUP)}
+                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] text-white rounded-full font-semibold text-lg hover:shadow-lg hover:shadow-red-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2"
+              >
                 Build My Resume
                 <ArrowRight size={20} />
               </button>
-              <button className="w-full sm:w-auto px-8 py-4 bg-white text-gray-900 border border-gray-200 rounded-full font-semibold text-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
+              <button 
+                onClick={() => navigate(routes.TEMPLATES)}
+                className="w-full sm:w-auto px-8 py-4 bg-white text-gray-900 border border-gray-200 rounded-full font-semibold text-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
+              >
                 <FileText size={20} className="text-gray-500" />
                 View Templates
               </button>
