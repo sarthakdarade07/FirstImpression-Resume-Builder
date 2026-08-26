@@ -17,7 +17,7 @@ export default function Hero({ isSplashFinished = true }) {
   const videoUrl = HeroVideo;
 
   return (
-    <section className="relative min-h-screen bg-gray-50 overflow-hidden pt-24 flex items-center">
+    <section className="relative min-h-screen bg-gray-50 overflow-hidden md:pt-24 flex items-center">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[500px] h-[500px] bg-[var(--theme-red-light)] rounded-full blur-3xl opacity-50 z-0"></div>
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[400px] h-[400px] bg-red-100 rounded-full blur-3xl opacity-40 z-0"></div>

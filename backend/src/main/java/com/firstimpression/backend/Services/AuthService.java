@@ -187,61 +187,41 @@ public class AuthService {
 		// 2.generate otp & save it to user
 		String otp = OtpService.generateOtp();
 		user.setOtp(otp);
-		user.setOtpExpires(LocalDateTime.now().plusMinutes(3));
+		user.setOtpExpires(LocalDateTime.now().plusMinutes(5));
 		usersRepository.save(user);
 
 		// 3. create html for email
-
 		ClassPathResource resource = new ClassPathResource("templates/forget-password-email.html");
 
 		String html = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
 		html = html.replace("{{OTP}}", otp);
 		// 4. send Html
-		String sub = "Reset Password";
+		String sub = "Reset Password - First Impression";
 
 		emailService.sendHtmlEmail(email, sub, html);
 
 	}
 
-	public OtpVerificationResponse verifyOtp(String email, String otp) {
+	public AuthResponse resetPassword(String email, String otp, String newPassword) {
 
-		log.info("Inside:AuthSerive-verifyOtp():{}", email, otp);
+		log.info("Inside AuthService-resetPassword() for email: {}", email);
 
 		Users user = usersRepository.findByEmailAndOtp(email, otp)
-				.orElseThrow(() -> new RuntimeException("OTP invalid"));
+				.orElseThrow(() -> new RuntimeException("Invalid Email or OTP."));
+
 		if (user.getOtp() == null || LocalDateTime.now().isAfter(user.getOtpExpires())) {
-			throw new RuntimeException("Otp Expired.");
+			throw new RuntimeException("OTP has expired.");
 		}
 
 		if (!user.getOtp().equals(otp)) {
-			throw new RuntimeException("Wrong Otp.");
+			throw new RuntimeException("Wrong OTP.");
 		}
 
 		user.setOtp(null);
 		user.setOtpExpires(null);
-		user.setResetToken(UUID.randomUUID().toString());
-		user.setResetTokenExpires(LocalDateTime.now().plusMinutes(5));
-		usersRepository.save(user);
-
-		return OtpVerificationResponse.builder().resetToken(user.getResetToken()).build();
-
-	}
-
-	public AuthResponse resetPassword(String resetToken, String newPassword) {
-
-		log.info("Inside AuthService-resetPassword()");
-
-		Users user = usersRepository.findByResetToken(resetToken)
-				.orElseThrow(() -> new RuntimeException("Token Invalid"));
-
-		if (user.getResetToken() == null || LocalDateTime.now().isAfter(user.getResetTokenExpires())) {
-			throw new RuntimeException("Token Expired.");
-		}
-
-		user.setResetToken(null);
-		user.setResetTokenExpires(null);
 		user.setPassword(passwordEncoder.encode(newPassword));
+		user.setEmailVerified(true);
 		Users savedUser = usersRepository.save(user);
 
 		String jwt = jwtUtil.generateToken(savedUser.getId());

@@ -122,7 +122,7 @@ const DashboardNavbar = ({ activeTab = 'My Resumes', setActiveTab }) => {
               <UserMenu isOpen={isUserMenuOpen} onClose={() => setIsUserMenuOpen(false)}  />
             </div>
           </div>
-        </div>
+        </div> 
 
         {/* Mobile Tab Slider (Visible only on small screens) */}
         <div className="md:hidden flex overflow-x-auto pb-4 hide-scrollbar gap-2">

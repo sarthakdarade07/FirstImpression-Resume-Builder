@@ -89,10 +89,7 @@ const AuthPage = () => {
             className="absolute inset-0 w-full h-full">
             <ForgotPassword
               onBackToLogin={() => navigate(routes.SIGNIN)}
-              onNavigateToOtp={(email) => {
-                setResetEmail(email);
-                navigate(routes.OTP, { state: { email } });
-              }}
+              redirectTo={routes.DASHBOARD}
             />
           </motion.div>
         )}

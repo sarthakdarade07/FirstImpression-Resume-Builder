@@ -41,11 +41,12 @@ export const verifyOtpApi = async (email, otp) => {
 };
 
 /**
- * Reset / Change Password API
+ * Reset / Change Password API (Direct Email + OTP + New Password)
  */
-export const resetPasswordApi = async (resetToken, newPassword) => {
+export const resetPasswordApi = async (email, otp, newPassword) => {
   const response = await api.post("/api/auth/reset-password", {
-    resetToken,
+    email,
+    otp,
     newPassword,
   });
   const data = response.data;

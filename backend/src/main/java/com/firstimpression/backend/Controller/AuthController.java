@@ -137,7 +137,7 @@ public class AuthController {
 
 	@PostMapping(AppConstants.FORGOT_PASSWORD)
 	public ResponseEntity<?> forgotPassword(@RequestBody Map<String,String> req) throws IOException, MessagingException{
-		log.info("Inside AuthController - resetPassword():{}",req);
+		log.info("Inside AuthController - forgotPassword():{}",req);
 		
 		String email = req.get("email");
 		if(Objects.nonNull(email)) {
@@ -145,25 +145,23 @@ public class AuthController {
 		}else {
 			throw new RuntimeException("Email Required.");
 		}
-		return ResponseEntity.ok().body(Map.of("message","Otp sent on registered Email."));
-
-	}
-	
-	@PostMapping(AppConstants.VERIFY_OTP)
-	public ResponseEntity<?> verifyOtp(@RequestBody Map<String,String> req){
-		log.info("Inside AuthController - verifyOtp():{}",req);
-		
-		OtpVerificationResponse res =	authService.verifyOtp(req.get("email"),req.get("otp"));
-		return ResponseEntity.ok().body(Map.of("message","Otp is Verified","response",res));
+		return ResponseEntity.ok().body(Map.of("message","OTP sent to registered email."));
 
 	}
 	
 	@PostMapping(AppConstants.RESET_PASSWORD)
 	public ResponseEntity<?> resetPassword(@RequestBody Map<String,String> req){
 		log.info("Inside AuthController - resetPassword():{}",req);
+		String email = req.get("email");
+		String otp = req.get("otp");
+		String newPassword = req.get("newPassword");
+
+		if (email == null || otp == null || newPassword == null) {
+			throw new RuntimeException("Email, OTP, and newPassword are required.");
+		}
            
-		AuthResponse response = authService.resetPassword(req.get("resetToken"), req.get("newPassword"));
-		return ResponseEntity.ok().body(Map.of("message", "Password Changed.", "response", response));
+		AuthResponse response = authService.resetPassword(email, otp, newPassword);
+		return ResponseEntity.ok().body(Map.of("message", "Password changed successfully.", "response", response));
 		
 	}
 

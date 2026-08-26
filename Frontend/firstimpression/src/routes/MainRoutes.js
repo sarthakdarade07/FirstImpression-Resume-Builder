@@ -55,12 +55,10 @@ function MainRoutes() {
       <Route path={routes.OTP} element={<AuthPage />} />
       <Route path={routes.CHANGE_PASSWORD} element={<AuthPage />} />
 
-      <Route
+      <Route 
         path={routes.TEMPLATES}
-        element={
-          <div className="text-center py-20 text-gray-500 font-medium">
-            Features tab is under development
-          </div>
+        element={ 
+          <div> Templates page</div>
         }
       />
     </Routes>

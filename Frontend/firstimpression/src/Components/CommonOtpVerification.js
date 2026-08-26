@@ -18,6 +18,7 @@ import FailedToast from "./notifications/FailedToast";
  * @param {Function} props.onBack - Navigation callback to go back
  * @param {Function} props.onVerify - Async callback (otpString) => Promise<void>
  * @param {Function} [props.onResend] - Async callback () => Promise<void>
+ * @param {number} [props.timerDuration=60] - Timer in seconds before resend is allowed (default 60s / 1 min)
  */
 const CommonOtpVerification = ({
   email,
@@ -25,6 +26,7 @@ const CommonOtpVerification = ({
   subtitle,
   submitButtonText = "Verify OTP",
   backText = "Back to Login",
+  timerDuration = 60,
   onBack,
   onVerify,
   onResend,
@@ -32,7 +34,7 @@ const CommonOtpVerification = ({
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [resendTimer, setResendTimer] = useState(30);
+  const [resendTimer, setResendTimer] = useState(timerDuration);
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
@@ -134,7 +136,7 @@ const CommonOtpVerification = ({
       await onResend();
       setToastMsg("Verification OTP resent to your email!");
       setShowToast(true);
-      setResendTimer(30);
+      setResendTimer(timerDuration);
       setOtp(new Array(6).fill(""));
       if (inputRefs.current[0]) {
         inputRefs.current[0].focus();
