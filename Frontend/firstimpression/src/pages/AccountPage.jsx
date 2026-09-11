@@ -84,12 +84,12 @@ const AccountPage = () => {
                 </div>
                 <div>
                   <h4 className="text-gray-900 font-bold mb-1">Profile photo</h4>
-                  <p className="text-sm text-gray-500 mb-4">We support PNGs, JPEGs and GIFs under 10MB</p>
+                  <p className="text-sm text-gray-500 mb-4">We support PNG, JPEG, WEBP, and HEIC up to 10MB (automatically stored as WebP)</p>
                   <div className="flex flex-wrap gap-3">
                     <label className="cursor-pointer inline-flex items-center justify-center px-6 py-2.5 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors text-sm font-semibold text-gray-500 shadow-sm">
                       <input 
                         type="file" 
-                        accept="image/*" 
+                        accept="image/*,.heic,.heif,image/heic,image/heif" 
                         className="hidden" 
                         onChange={handleImageUpload} 
                         disabled={isLoading}

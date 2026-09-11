@@ -13,7 +13,10 @@ import { setUser } from '../../../redux/slices/authslice';
 const useAccount = () => {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-  const API_BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
+  const API_BASE_URL =
+    import.meta.env?.VITE_BACKEND_BASE_URL ||
+    process.env?.REACT_APP_BACKEND_BASE_URL ||
+    'http://localhost:8080';
 
   const [activeTab, setActiveTab] = useState('general');
 
@@ -52,6 +55,15 @@ const useAccount = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (file.size > 10 * 1024 * 1024) {
+      setIsSuccess(false);
+      setMsg('File size exceeds 10MB limit.');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      e.target.value = '';
+      return;
+    }
+
     const formData = new FormData();
     formData.append('image', file);
 
@@ -84,6 +96,7 @@ const useAccount = () => {
       setTimeout(() => setShowToast(false), 3000);
     } finally {
       setIsLoading(false);
+      if (e.target) e.target.value = '';
     }
   };
 

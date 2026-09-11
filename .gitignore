@@ -2,3 +2,6 @@ node_modules/
 .env 
 *.log 
 application-secrets.properties
+application-secreate.properties
+*secret*.properties
+*secreate*.properties

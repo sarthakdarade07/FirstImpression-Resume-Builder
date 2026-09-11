@@ -98,7 +98,6 @@ const ProfileEducation = ({
       return updated;
     });
   };
-
   const handleAddNew = () => {
     const defaultEduType = educationTypes.length > 0 ? educationTypes[0] : { id: 1, title: "Bachelor's Degree" };
     const defaultScoreType = scoreTypes.length > 0 ? scoreTypes[0] : { id: 1, title: 'CGPA' };
@@ -155,14 +154,17 @@ const ProfileEducation = ({
     <div>
       <div className="flex items-center justify-between mb-8 max-w-3xl">
         <div>
-          <h2 className="text-[1.7rem] font-bold text-gray-900 tracking-tight">Education</h2>
-          <p className="text-sm text-gray-500 mt-1">Add your academic background, degrees, and institutions.</p>
+          <h2 className="text-[1.7rem] font-bold text-gray-900 tracking-tight">
+            Education
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Add your academic background, degrees, and institutions.
+          </p>
         </div>
         <button
           type="button"
           onClick={handleAddNew}
-          className="px-5 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm flex items-center gap-1.5 shrink-0"
-        >
+          className="px-5 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm flex items-center gap-1.5 shrink-0">
           <Plus size={16} />
           Add Education
         </button>
@@ -173,22 +175,26 @@ const ProfileEducation = ({
           <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200/80 flex items-center justify-center text-gray-400 mb-4 shadow-sm">
             <GraduationCap size={28} />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">No education added yet</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-1">
+            No education added yet
+          </h3>
           <p className="text-gray-500 text-sm mb-6 max-w-sm">
-            Add your degrees, schools, and academic achievements to showcase on your resumes.
+            Add your degrees, schools, and academic achievements to showcase on
+            your resumes.
           </p>
           <button
             type="button"
             onClick={handleAddNew}
-            className="px-6 py-2.5 bg-white border border-gray-200 text-gray-800 text-sm font-bold rounded-full hover:bg-gray-50 transition-colors shadow-sm"
-          >
+            className="px-6 py-2.5 bg-white border border-gray-200 text-gray-800 text-sm font-bold rounded-full hover:bg-gray-50 transition-colors shadow-sm">
             Add Your First Education
           </button>
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-8 max-w-3xl">
           {items.map((edu, index) => (
-            <div key={index} className="space-y-6 bg-white p-6 sm:p-7 rounded-3xl border border-gray-200/80 shadow-sm relative">
+            <div
+              key={index}
+              className="space-y-6 bg-white p-6 sm:p-7 rounded-3xl border border-gray-200/80 shadow-sm relative">
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-xl bg-[var(--theme-red)]/10 text-[var(--theme-red)] flex items-center justify-center font-bold text-xs">
@@ -201,8 +207,7 @@ const ProfileEducation = ({
                 <button
                   type="button"
                   onClick={() => handleRemove(index)}
-                  className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-700 text-sm font-semibold px-3 py-1.5 hover:bg-red-50 rounded-xl transition-colors"
-                >
+                  className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-700 text-sm font-semibold px-3 py-1.5 hover:bg-red-50 rounded-xl transition-colors">
                   <Trash2 size={15} />
                   Delete
                 </button>
@@ -211,13 +216,16 @@ const ProfileEducation = ({
               {/* Education Type Dropdown & Specialization */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">Education Level / Degree</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    Education Level / Degree
+                  </label>
                   <select
-                    value={edu.educationTypeId || ''}
-                    onChange={(e) => handleEducationTypeSelect(index, e.target.value)}
+                    value={edu.educationTypeId || ""}
+                    onChange={(e) =>
+                      handleEducationTypeSelect(index, e.target.value)
+                    }
                     required
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm cursor-pointer"
-                  >
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm cursor-pointer">
                     {educationTypes.map((type) => (
                       <option key={type.id} value={type.id}>
                         {type.title}
@@ -226,11 +234,15 @@ const ProfileEducation = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">Field of Study / Specialization</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    Field of Study / Specialization
+                  </label>
                   <input
                     type="text"
                     value={edu.specialization}
-                    onChange={(e) => handleChange(index, 'specialization', e.target.value)}
+                    onChange={(e) =>
+                      handleChange(index, "specialization", e.target.value)
+                    }
                     placeholder="e.g. Computer Science & Engineering"
                     className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm"
                   />
@@ -240,22 +252,30 @@ const ProfileEducation = ({
               {/* Institute Name & Board/University */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">Institute / College / School Name</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    Institute / College / School Name
+                  </label>
                   <input
                     type="text"
                     value={edu.instituteName}
-                    onChange={(e) => handleChange(index, 'instituteName', e.target.value)}
+                    onChange={(e) =>
+                      handleChange(index, "instituteName", e.target.value)
+                    }
                     placeholder="e.g. Stanford University"
                     required
                     className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">Board / Affiliated University</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    Board / Affiliated University
+                  </label>
                   <input
                     type="text"
                     value={edu.boardOrUniversity}
-                    onChange={(e) => handleChange(index, 'boardOrUniversity', e.target.value)}
+                    onChange={(e) =>
+                      handleChange(index, "boardOrUniversity", e.target.value)
+                    }
                     placeholder="e.g. State Board or University"
                     className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm"
                   />
@@ -265,11 +285,15 @@ const ProfileEducation = ({
               {/* Start Year & End Year */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">Start Year</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    Start Year
+                  </label>
                   <input
                     type="number"
                     value={edu.startYear}
-                    onChange={(e) => handleChange(index, 'startYear', e.target.value)}
+                    onChange={(e) =>
+                      handleChange(index, "startYear", e.target.value)
+                    }
                     placeholder="e.g. 2020"
                     min="1950"
                     max="2099"
@@ -277,11 +301,15 @@ const ProfileEducation = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">End Year (or Expected)</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    End Year (or Expected)
+                  </label>
                   <input
                     type="number"
                     value={edu.endYear}
-                    onChange={(e) => handleChange(index, 'endYear', e.target.value)}
+                    onChange={(e) =>
+                      handleChange(index, "endYear", e.target.value)
+                    }
                     placeholder="e.g. 2024"
                     min="1950"
                     max="2099"
@@ -293,13 +321,16 @@ const ProfileEducation = ({
               {/* Score Type Dropdown & Score Value */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">Grading / Score Type</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    Grading / Score Type
+                  </label>
                   <select
-                    value={edu.scoreTypeId || ''}
-                    onChange={(e) => handleScoreTypeSelect(index, e.target.value)}
+                    value={edu.scoreTypeId || ""}
+                    onChange={(e) =>
+                      handleScoreTypeSelect(index, e.target.value)
+                    }
                     required
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm cursor-pointer"
-                  >
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm cursor-pointer">
                     {scoreTypes.map((score) => (
                       <option key={score.id} value={score.id}>
                         {score.title}
@@ -308,18 +339,26 @@ const ProfileEducation = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">Score / Result Value</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    Score / Result Value
+                  </label>
                   <input
                     type="number"
                     step="0.01"
                     value={edu.score}
-                    onChange={(e) => handleChange(index, 'score', e.target.value)}
+                    onChange={(e) =>
+                      handleChange(index, "score", e.target.value)
+                    }
                     placeholder={
                       edu.scoreTypeId === 1
-                        ? 'e.g. 9.15 (CGPA)'
-                        : edu.scoreTypeId === 2
-                        ? 'e.g. 88.5 (%)'
-                        : 'e.g. 3.85'
+                        ? "e.g. 90.00%"
+                        : edu.scoreTypeId === 2 || edu.scoreTypeId == 4
+                          ? "e.g. 8.52 "
+                          : edu.scoreTypeId === 3
+                            ? "e.g. 450"
+                            : edu.scoreTypeId === 5
+                            ? "e.g. A"
+                            :""
                     }
                     className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm"
                   />
@@ -332,10 +371,13 @@ const ProfileEducation = ({
             <button
               type="submit"
               disabled={isSaving}
-              className="px-8 py-3.5 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] text-white text-sm font-bold rounded-full hover:shadow-lg hover:shadow-red-500/25 transition-all flex items-center gap-2 disabled:opacity-70"
-            >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              {isSaving ? 'Saving...' : 'Save Education Details'}
+              className="px-8 py-3.5 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] text-white text-sm font-bold rounded-full hover:shadow-lg hover:shadow-red-500/25 transition-all flex items-center gap-2 disabled:opacity-70">
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              {isSaving ? "Saving..." : "Save Education Details"}
             </button>
           </div>
         </form>
