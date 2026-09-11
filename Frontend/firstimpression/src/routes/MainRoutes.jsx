@@ -5,6 +5,7 @@ import DashboardPage from "../pages/DashboardPage";
 import ProfilePage from "../pages/ProfilePage";
 import AccountPage from "../pages/AccountPage";
 import AuthPage from "../pages/AuthPage";
+import TemplatesPage from "../pages/TemplatesPage";
 import { useSelector } from "react-redux";
 import { routes } from "./routes";
 
@@ -57,9 +58,7 @@ function MainRoutes() {
 
       <Route 
         path={routes.TEMPLATES}
-        element={ 
-          <div> Templates page</div>
-        }
+        element={<TemplatesPage />}
       />
     </Routes>
   );

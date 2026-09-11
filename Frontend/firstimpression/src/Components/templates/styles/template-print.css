@@ -1,0 +1,305 @@
+/* ==========================================================================
+   RESUME TEMPLATE PRINT & PDF EXPORT STYLES
+   Ensures pixel-perfect A4 printing, zero content cut-off, and compact spacing.
+   ========================================================================== */
+
+@page {
+  size: A4 portrait;
+  margin: 0mm !important;
+}
+
+@media print {
+  /* Hide all UI elements, navigation, buttons, editor, sidebars, and toasts */
+  header,
+  aside,
+  nav,
+  button,
+  .print-hide,
+  .no-print,
+  .template-controls,
+  .fixed,
+  #toast {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Reset document and viewport to exact printable bounds with visible overflow */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Reset outer layout wrappers */
+  #root,
+  .min-h-screen,
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Reset CSS transform/zoom scaling so document prints at exact 100% scale */
+  .resume-print-wrapper,
+  div[style*="transform"] {
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+  }
+
+  /* Reset resume viewport wrapper */
+  .resume-viewport {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    display: block !important;
+    width: 210mm !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Exact A4 sheet with visible overflow to never cut off content */
+  .resume-page {
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 297mm !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ==========================================================================
+     COMPACT PRINT STYLES: Remove/minimize margins & paddings across components
+     so all information fits cleanly on the page.
+     ========================================================================== */
+
+  /* Header Block & Profile Photo */
+  .resume-header,
+  .block-header,
+  .classic-header-block,
+  .sidebar-header-block {
+    padding: 10px 18px !important;
+    margin: 0 !important;
+  }
+
+  .header-container {
+    gap: 12px !important;
+  }
+
+  .header-photo,
+  .avatar-img,
+  .candidate-avatar img {
+    width: 52px !important;
+    height: 52px !important;
+    border-radius: 10px !important;
+    margin-bottom: 2px !important;
+    border-width: 2px !important;
+  }
+
+  .candidate-avatar {
+    margin-bottom: 3px !important;
+  }
+
+  .header-name,
+  .candidate-name {
+    font-size: 19px !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+  }
+
+  .header-role,
+  .candidate-title {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    margin-top: 1px !important;
+    margin-bottom: 3px !important;
+  }
+
+  .header-contacts,
+  .candidate-contact {
+    gap: 6px 12px !important;
+    font-size: 9.5px !important;
+    margin: 0 !important;
+  }
+
+  /* Columns & Containers */
+  .sidebar-column,
+  .modern-sidebar {
+    padding: 10px 12px !important;
+    gap: 6px !important;
+  }
+
+  .main-column,
+  .modern-main-content,
+  .classic-body {
+    padding: 10px 16px !important;
+    gap: 8px !important;
+  }
+
+  .modern-columns-layout,
+  .resume-body-columns {
+    min-height: auto !important;
+  }
+
+  /* Section Headings & Titles */
+  .section-title,
+  .block-section-title,
+  .resume-heading {
+    font-size: 11.5px !important;
+    line-height: 1.2 !important;
+    margin-top: 5px !important;
+    margin-bottom: 3px !important;
+    padding-bottom: 2px !important;
+  }
+
+  .section-title:first-child,
+  .block-section-title:first-child {
+    margin-top: 0 !important;
+  }
+
+  .sidebar-section,
+  .main-section,
+  .resume-section,
+  .resume-block {
+    margin-bottom: 5px !important;
+    gap: 3px !important;
+  }
+
+  /* Experience, Education, Projects & Certifications Items */
+  .timeline-item {
+    margin-bottom: 5px !important;
+  }
+
+  .timeline-item:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  .item-header,
+  .timeline-header {
+    margin-bottom: 1px !important;
+    gap: 2px !important;
+  }
+
+  .item-title,
+  .timeline-title {
+    font-size: 11.5px !important;
+    line-height: 1.2 !important;
+  }
+
+  .item-subtitle,
+  .timeline-subtitle {
+    font-size: 10.5px !important;
+    line-height: 1.2 !important;
+  }
+
+  .timeline-date,
+  .timeline-location {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+  }
+
+  .timeline-description,
+  .item-description,
+  .summary-text {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+    margin-top: 1px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .timeline-highlights,
+  .item-highlights,
+  .resume-list {
+    margin-top: 1px !important;
+    margin-bottom: 1px !important;
+    padding-left: 12px !important;
+  }
+
+  .timeline-highlights li,
+  .item-highlights li,
+  .resume-item {
+    font-size: 9.5px !important;
+    line-height: 1.25 !important;
+    margin-bottom: 1px !important;
+  }
+
+  /* Skills & Languages */
+  .skills-list {
+    gap: 3px 4px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .skill-badge,
+  .skill-tag {
+    padding: 1px 5px !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    border-radius: 3px !important;
+  }
+
+  .skill-group {
+    margin-bottom: 3px !important;
+  }
+
+  .skill-group-name {
+    font-size: 9.5px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .language-item {
+    font-size: 9.5px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Dividers & Spacers */
+  .resume-divider {
+    margin: 3px 0 !important;
+  }
+
+  .resume-spacer {
+    height: 3px !important;
+  }
+
+  /* Prevent awkward mid-item breaks */
+  .resume-section,
+  .resume-block,
+  .timeline-item,
+  .skill-group {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+
+
