@@ -140,6 +140,7 @@ export const resumeApi = {
    */
   async createResumeFromTemplate(template, customTitle, customResumeData = null) {
     let resumeData = null;
+    const token = localStorage.getItem('jwtToken');
 
     if (customResumeData) {
       resumeData = JSON.parse(JSON.stringify(customResumeData));
@@ -152,7 +153,6 @@ export const resumeApi = {
         if (rawUser) authUser = JSON.parse(rawUser);
       } catch {}
 
-      const token = localStorage.getItem('jwtToken');
       if (token) {
         try {
           const profileRes = await api.get('/api/profile/get-profile');

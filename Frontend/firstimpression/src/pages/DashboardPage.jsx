@@ -215,7 +215,7 @@ const DashboardPage = () => {
 
                 <button
                   type="button"
-                  onClick={() => navigate(routes.TEMPLATES)}
+                  onClick={() => navigate(`${routes.TEMPLATES}?preview=true`)}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 bg-theme-red hover:bg-theme-red/90 text-white text-xs font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
                 >
                   <span>Open Studio</span>
@@ -341,7 +341,7 @@ const DashboardPage = () => {
                       <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 p-4 backdrop-blur-[2px]">
                         <button
                           type="button"
-                          onClick={() => navigate(`${routes.TEMPLATES}?template=${tpl.slug}`)}
+                          onClick={() => navigate(`${routes.TEMPLATES}?template=${tpl.slug}&preview=true`)}
                           className="px-4 py-2 bg-white text-gray-900 text-xs font-bold rounded-xl shadow-lg hover:bg-gray-100 transition-transform hover:scale-105 flex items-center gap-1.5 cursor-pointer"
                         >
                           <Eye className="w-4 h-4 text-theme-red" />

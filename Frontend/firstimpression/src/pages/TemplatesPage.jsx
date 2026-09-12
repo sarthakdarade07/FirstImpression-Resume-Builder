@@ -37,6 +37,13 @@ export default function TemplatesPage() {
   const initialSlug = searchParams.get('template') || 'modern-sidebar';
   const resumeId = searchParams.get('resumeId');
   const editParam = searchParams.get('edit');
+  const previewParam = searchParams.get('preview');
+
+  // Explicit editing state tracking to ensure instant UI transitions
+  const [isEditingMode, setIsEditingMode] = useState(editParam === 'true');
+
+  // Preview Mode: active ONLY when not actively editing, no loaded resume, and preview mode is indicated
+  const isPreviewMode = !isEditingMode && !resumeId && (previewParam === 'true' || editParam !== 'true');
 
   const {
     activeSlug,
@@ -54,7 +61,7 @@ export default function TemplatesPage() {
   const [savedResumeData, setSavedResumeData] = useState(null);
   const [editableData, setEditableData] = useState(null);
   const [resumeTitle, setResumeTitle] = useState('');
-  const [isEditorOpen, setIsEditorOpen] = useState(true); // Default to ON as requested
+  const [isEditorOpen, setIsEditorOpen] = useState(editParam === 'true' || !isPreviewMode);
   const [isLoadingResume, setIsLoadingResume] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
@@ -62,6 +69,17 @@ export default function TemplatesPage() {
   const [showToast, setShowToast] = useState(false);
 
   const authUser = useSelector((state) => state.auth?.user);
+
+  // Synchronize editor drawer with URL params
+  useEffect(() => {
+    if (editParam === 'true') {
+      setIsEditingMode(true);
+      setIsEditorOpen(true);
+    } else if (previewParam === 'true') {
+      setIsEditingMode(false);
+      setIsEditorOpen(false);
+    }
+  }, [previewParam, editParam]);
 
   // Fetch resume if resumeId is in URL
   useEffect(() => {
@@ -165,7 +183,46 @@ export default function TemplatesPage() {
     }
   };
 
+  const handleUseThisTemplate = async () => {
+    setIsSaving(true);
+    const dataToSave = activeResumeData;
+    try {
+      const title = resumeTitle || `${authUser?.name || authUser?.fullName || 'My'} ${currentTemplate?.name || 'Resume'}`;
+      const created = await resumeApi.createResumeFromTemplate(currentTemplate, title, dataToSave);
+      
+      // Immediately activate edit mode & open editor drawer!
+      setIsEditingMode(true);
+      setIsEditorOpen(true);
+
+      if (created && created.id) {
+        setLoadedResume(created);
+        setResumeTitle(created.title);
+        setSavedResumeData(dataToSave);
+        setEditableData(dataToSave);
+        setDataSourceType('saved');
+        navigate(`${routes.TEMPLATES}?template=${currentTemplate.slug}&resumeId=${created.id}&edit=true`, { replace: true });
+        setToastMessage('Template chosen! You can now customize and edit your resume.');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3500);
+      } else {
+        navigate(`${routes.TEMPLATES}?template=${currentTemplate.slug}&edit=true`, { replace: true });
+      }
+    } catch (err) {
+      console.warn('Failed to create resume from template via API:', err);
+      // Seamlessly activate local edit mode
+      setIsEditingMode(true);
+      setIsEditorOpen(true);
+      navigate(`${routes.TEMPLATES}?template=${currentTemplate.slug}&edit=true`, { replace: true });
+      setToastMessage('Ready to edit! Make your changes and click Save.');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3500);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handlePrint = () => {
+    setIsUserMenuOpen(false);
     window.print();
   };
 
@@ -201,11 +258,18 @@ export default function TemplatesPage() {
             </div>
 
             <span className="text-gray-300 hidden sm:inline">/</span>
-            <span className="font-semibold text-gray-700 text-xs sm:text-sm bg-gray-100 px-2.5 py-1 rounded-lg">
-              Template Studio
+            <span className="font-semibold text-gray-700 text-xs sm:text-sm bg-gray-100 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+              {isPreviewMode ? (
+                <>
+                  <Eye className="w-3.5 h-3.5 text-theme-red" />
+                  <span>Read-Only Preview</span>
+                </>
+              ) : (
+                <span>Template Studio</span>
+              )}
             </span>
 
-            {loadedResume && (
+            {loadedResume && !isPreviewMode && (
               <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-50 border border-orange-200/80 rounded-lg text-xs font-semibold text-theme-red max-w-[220px] truncate">
                 <FileText className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">{resumeTitle || loadedResume.title || 'Saved Resume'}</span>
@@ -224,6 +288,8 @@ export default function TemplatesPage() {
                 setSearchParams(
                   resumeId
                     ? { template: nextSlug, resumeId, edit: isEditorOpen ? 'true' : 'false' }
+                    : isPreviewMode
+                    ? { template: nextSlug, preview: 'true' }
                     : { template: nextSlug, edit: isEditorOpen ? 'true' : 'false' }
                 );
               }}
@@ -262,85 +328,91 @@ export default function TemplatesPage() {
               </button>
             </div>
 
-            {/* Resume Storage Isolation Indicator */}
-            {loadedResume || resumeId ? (
-              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200/80 rounded-xl text-xs font-semibold text-emerald-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Separate Resume Copy (Profile Untouched)</span>
-              </div>
-            ) : (
-              <div className="hidden lg:flex items-center bg-gray-100/90 rounded-xl p-0.5 border border-gray-200 text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDataSourceType('user');
-                    if (authUser) {
-                      setEditableData(transformProfileToResumeData(null, authUser));
-                    }
-                  }}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
-                    dataSourceType === 'user'
-                      ? 'bg-white text-theme-red shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  👤 Profile Data
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDataSourceType('sample');
-                    setEditableData(sampleResumeData);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
-                    dataSourceType === 'sample'
-                      ? 'bg-white text-theme-red shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  📋 Sample Data
-                </button>
-              </div>
+            {/* Resume Storage Isolation Indicator (Edit Mode Only) */}
+            {!isPreviewMode && (
+              loadedResume || resumeId ? (
+                <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200/80 rounded-xl text-xs font-semibold text-emerald-700">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Separate Resume Copy (Profile Untouched)</span>
+                </div>
+              ) : (
+                <div className="hidden lg:flex items-center bg-gray-100/90 rounded-xl p-0.5 border border-gray-200 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDataSourceType('user');
+                      if (authUser) {
+                        setEditableData(transformProfileToResumeData(null, authUser));
+                      }
+                    }}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${
+                      dataSourceType === 'user'
+                        ? 'bg-white text-theme-red shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    👤 Profile Data
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDataSourceType('sample');
+                      setEditableData(sampleResumeData);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${
+                      dataSourceType === 'sample'
+                        ? 'bg-white text-theme-red shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    📋 Sample Data
+                  </button>
+                </div>
+              )
             )}
 
-            {/* Edit Details vs Full View Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsEditorOpen((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-sm cursor-pointer ${
-                isEditorOpen
-                  ? 'bg-orange-50 border-orange-200 text-theme-red'
-                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-              }`}
-              title={isEditorOpen ? 'Switch to Full View' : 'Edit Resume Content'}
-            >
-              {isEditorOpen ? (
-                <>
-                  <Maximize2 className="w-3.5 h-3.5" />
-                  <span>Full View</span>
-                </>
-              ) : (
-                <>
-                  <Edit3 className="w-3.5 h-3.5 text-theme-red" />
-                  <span>Edit Resume</span>
-                </>
-              )}
-            </button>
+            {/* Edit Details vs Full View Toggle Button (Edit Mode Only) */}
+            {!isPreviewMode && (
+              <button
+                type="button"
+                onClick={() => setIsEditorOpen((prev) => !prev)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-sm cursor-pointer ${
+                  isEditorOpen
+                    ? 'bg-orange-50 border-orange-200 text-theme-red'
+                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}
+                title={isEditorOpen ? 'Switch to Full View' : 'Edit Resume Content'}
+              >
+                {isEditorOpen ? (
+                  <>
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Full View</span>
+                  </>
+                ) : (
+                  <>
+                    <Edit3 className="w-3.5 h-3.5 text-theme-red" />
+                    <span>Edit Resume</span>
+                  </>
+                )}
+              </button>
+            )}
 
-            {/* Save Changes Button */}
-            <button
-              type="button"
-              onClick={handleSaveResume}
-              disabled={isSaving || !currentTemplate}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-theme-red-start to-theme-red hover:from-theme-red hover:to-theme-red-end text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all focus:ring-2 focus:ring-theme-red/30 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Save className="w-3.5 h-3.5" />
-              )}
-              <span>{loadedResume ? 'Save Changes' : 'Save Resume'}</span>
-            </button>
+            {/* Save Changes Button (Edit Mode Only) */}
+            {!isPreviewMode && (
+              <button
+                type="button"
+                onClick={handleSaveResume}
+                disabled={isSaving || !currentTemplate}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-theme-red-start to-theme-red hover:from-theme-red hover:to-theme-red-end text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all focus:ring-2 focus:ring-theme-red/30 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5" />
+                )}
+                <span>{loadedResume ? 'Save Changes' : 'Save Resume'}</span>
+              </button>
+            )}
 
             {/* Print / Save PDF Button */}
             <button
@@ -351,6 +423,24 @@ export default function TemplatesPage() {
               <Printer className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Print / PDF</span>
             </button>
+
+            {/* USE THIS TEMPLATE BUTTON (Prominently placed in Top Right Corner during Preview) */}
+            {isPreviewMode && (
+              <button
+                type="button"
+                onClick={handleUseThisTemplate}
+                disabled={isSaving || !currentTemplate}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-theme-red-start to-theme-red hover:from-theme-red hover:to-theme-red-end text-white text-xs sm:text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] focus:ring-2 focus:ring-theme-red/30 cursor-pointer disabled:opacity-50"
+                title="Use and customize this template"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" strokeWidth={2.5} />
+                )}
+                <span>Use This Template</span>
+              </button>
+            )}
 
             {/* User Profile Avatar */}
             {authUser && (
@@ -379,7 +469,7 @@ export default function TemplatesPage() {
 
       {/* Floating Success Toast */}
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-gray-800 animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-gray-800 animate-in fade-in slide-in-from-bottom-5 duration-300 print-hide">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <div className="text-xs sm:text-sm font-medium">{toastMessage}</div>
           <button
@@ -397,24 +487,26 @@ export default function TemplatesPage() {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Slide-over / Split Left Resume Content Editor Drawer */}
         {isEditorOpen && (
-          <ResumeEditorPanel
-            resumeData={activeResumeData}
-            onChange={(newData) => {
-              setEditableData(newData);
-            }}
-            resumeTitle={resumeTitle}
-            onTitleChange={setResumeTitle}
-            onSave={handleSaveResume}
-            isSaving={isSaving}
-            lastSaved={lastSaved}
-            onClose={() => setIsEditorOpen(false)}
-          />
+          <aside className="print-hide shrink-0 z-20">
+            <ResumeEditorPanel
+              resumeData={activeResumeData}
+              onChange={(newData) => {
+                setEditableData(newData);
+              }}
+              resumeTitle={resumeTitle}
+              onTitleChange={setResumeTitle}
+              onSave={handleSaveResume}
+              isSaving={isSaving}
+              lastSaved={lastSaved}
+              onClose={() => setIsEditorOpen(false)}
+            />
+          </aside>
         )}
 
         {/* Central Preview Stage */}
         <main className="flex-1 overflow-auto bg-slate-200/80 p-6 sm:p-8 flex justify-center items-start relative">
-          {/* Quick Floating Button to Re-open Editor if closed */}
-          {!isEditorOpen && (
+          {/* Quick Floating Button to Re-open Editor if closed and NOT in preview mode */}
+          {!isEditorOpen && !isPreviewMode && (
             <button
               type="button"
               onClick={() => setIsEditorOpen(true)}
@@ -425,6 +517,29 @@ export default function TemplatesPage() {
             </button>
           )}
 
+          {/* Floating Call-to-Action Pill in Preview Mode */}
+          {isPreviewMode && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-5 py-2.5 bg-gray-900/90 hover:bg-gray-900 text-white rounded-2xl shadow-2xl backdrop-blur-md border border-gray-800 print-hide transition-all">
+              <div className="flex items-center gap-2 text-xs text-gray-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Previewing <strong className="text-white">{currentTemplate?.name || 'Template'}</strong></span>
+              </div>
+              <button
+                type="button"
+                onClick={handleUseThisTemplate}
+                disabled={isSaving || !currentTemplate}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-theme-red-start to-theme-red hover:opacity-95 text-white text-xs font-bold rounded-xl shadow transition-transform hover:scale-105 cursor-pointer disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
+                )}
+                <span>Use This Template</span>
+              </button>
+            </div>
+          )}
+
           {loading || isLoadingResume ? (
             <div className="flex flex-col items-center justify-center py-32 text-gray-400 gap-3">
               <div className="w-9 h-9 border-4 border-theme-red border-t-transparent rounded-full animate-spin"></div>
@@ -432,7 +547,7 @@ export default function TemplatesPage() {
             </div>
           ) : currentTemplate ? (
             <div
-              className="resume-print-wrapper"
+              className="resume-print-wrapper resume-print-target"
               style={{
                 transform: `scale(${zoomLevel / 100})`,
                 transformOrigin: 'top center',

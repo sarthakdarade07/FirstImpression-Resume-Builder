@@ -262,7 +262,7 @@ export default function ResumeEditorPanel({
   };
 
   return (
-    <div className="w-full lg:w-[440px] xl:w-[480px] bg-white border-r border-gray-200 flex flex-col h-full shadow-lg z-20 shrink-0">
+    <div className="w-full lg:w-[440px] xl:w-[480px] bg-white border-r border-gray-200 flex flex-col h-full shadow-lg z-20 shrink-0 print-hide">
       {/* Panel Top Header */}
       <div className="p-4 border-b border-gray-100 bg-white sticky top-0 z-10 flex flex-col gap-3">
         <div className="flex items-center justify-between">

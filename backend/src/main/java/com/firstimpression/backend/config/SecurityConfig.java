@@ -46,7 +46,10 @@ public class SecurityConfig {
 				   "/api/auth/forgot-password",
 				   "/api/auth/verify-otp",
 				   "/api/auth/reset-password",
-				   "/actuator/**").permitAll().anyRequest().authenticated())
+				   "/actuator/**",
+				   "/api/templates/**").permitAll()
+				   .requestMatchers(org.springframework.http.HttpMethod.GET ).permitAll()
+				   .anyRequest().authenticated())
 		   .sessionManagement(session -> session.sessionCreationPolicy((SessionCreationPolicy.STATELESS)))
 		   .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 		   .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
@@ -56,7 +59,7 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration corsConfiguration = new CorsConfiguration();
-		corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+		corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
 		corsConfiguration.setAllowedMethods(Arrays.asList("GET","PUT","POST","PATCH","DELETE","OPTIONS")); 
 		corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

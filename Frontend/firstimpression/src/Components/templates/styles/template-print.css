@@ -9,16 +9,21 @@
 }
 
 @media print {
-  /* Hide all UI elements, navigation, buttons, editor, sidebars, and toasts */
+  /* Hide all UI elements, navigation, buttons, editor, sidebars, forms, and toasts */
   header,
   aside,
   nav,
   button,
+  input,
+  textarea,
+  select,
   .print-hide,
   .no-print,
   .template-controls,
   .fixed,
-  #toast {
+  #toast,
+  [role="menu"],
+  [role="dialog"] {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
@@ -43,6 +48,7 @@
   /* Reset outer layout wrappers */
   #root,
   .min-h-screen,
+  .flex-1,
   main {
     margin: 0 !important;
     padding: 0 !important;
@@ -51,6 +57,7 @@
     min-height: 0 !important;
     max-height: none !important;
     background: transparent !important;
+    background-color: transparent !important;
     overflow: visible !important;
     display: block !important;
     box-shadow: none !important;
@@ -59,9 +66,10 @@
 
   /* Reset CSS transform/zoom scaling so document prints at exact 100% scale */
   .resume-print-wrapper,
+  .resume-print-target,
   div[style*="transform"] {
     transform: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     width: 210mm !important;
     height: auto !important;
@@ -70,7 +78,7 @@
   /* Reset resume viewport wrapper */
   .resume-viewport {
     padding: 0 !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
@@ -90,13 +98,21 @@
     min-height: 297mm !important;
     height: auto !important;
     max-height: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
     overflow: visible !important;
     box-sizing: border-box !important;
+  }
+
+  /* Force background colors and graphics across all print engines */
+  .resume-page,
+  .resume-page * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   /* ==========================================================================
