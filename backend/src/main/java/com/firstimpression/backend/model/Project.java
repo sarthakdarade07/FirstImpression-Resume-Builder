@@ -1,6 +1,5 @@
 package com.firstimpression.backend.model;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -60,7 +59,9 @@ public class Project {
     @Column(length = 255)
     private String projectLink;
 
-    private LocalDate startDate;
+    @Column(name = "start_date", length = 50)
+    private String startDate;
 
-    private LocalDate endDate;
+    @Column(name = "end_date", length = 50)
+    private String endDate;
 }

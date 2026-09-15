@@ -839,3 +839,125 @@ Replace `<slug>` with your template's slug (e.g. `modern-sidebar`).
   margin-bottom: ;
 }
 ```
+
+---
+
+### 5.5 Complete Zero-Value Profile Information / Resume Data JSON Reference
+
+Universal data schema consumed by `<TemplateRenderer>` and bound to Semantic Blocks (`HeaderBlock`, `ExperienceBlock`, etc.) and AST Nodes (`bind: "personal.email"`, etc.). Contains all supported personal details, career collections, and metadata with zero/empty values:
+
+```json
+{
+  "personal": {
+    "name": "",
+    "fullName": "",
+    "title": "",
+    "jobTitle": "",
+    "email": "",
+    "phone": "",
+    "location": "",
+    "city": "",
+    "country": "",
+    "linkedin": "",
+    "github": "",
+    "website": "",
+    "portfolio": "",
+    "photoUrl": "",
+    "avatar": "",
+    "bio": ""
+  },
+  "summary": "",
+  "experience": [
+    {
+      "id": "",
+      "role": "",
+      "title": "",
+      "position": "",
+      "company": "",
+      "employer": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "description": "",
+      "highlights": [
+        ""
+      ]
+    }
+  ],
+  "education": [
+    {
+      "id": "",
+      "degree": "",
+      "fieldOfStudy": "",
+      "major": "",
+      "institution": "",
+      "school": "",
+      "college": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
+      "gpa": "",
+      "highlights": [
+        ""
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "category": "",
+      "items": [
+        ""
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "",
+      "name": "",
+      "title": "",
+      "link": "",
+      "url": "",
+      "technologies": [
+        ""
+      ],
+      "startDate": "",
+      "endDate": "",
+      "description": "",
+      "highlights": [
+        ""
+      ]
+    }
+  ],
+  "certifications": [
+    {
+      "id": "",
+      "name": "",
+      "title": "",
+      "issuer": "",
+      "organization": "",
+      "date": "",
+      "url": ""
+    }
+  ],
+  "languages": [
+    {
+      "name": "",
+      "language": "",
+      "level": "",
+      "proficiency": ""
+    }
+  ],
+  "custom": [
+    {
+      "id": "",
+      "title": "",
+      "description": "",
+      "items": [
+        ""
+      ]
+    }
+  ]
+}
+```
+

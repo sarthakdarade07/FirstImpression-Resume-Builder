@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
@@ -226,6 +227,18 @@ export default function TemplatesPage() {
     window.print();
   };
 
+  // Keyboard shortcut listener to ensure menus are closed when printing
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        handlePrint();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans selection:bg-theme-red-start/20 selection:text-theme-red">
       {/* Top Navigation & Controls Toolbar */}
@@ -414,14 +427,15 @@ export default function TemplatesPage() {
               </button>
             )}
 
-            {/* Print / Save PDF Button */}
+            {/* Print Button */}
             <button
               type="button"
               onClick={handlePrint}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-semibold rounded-xl shadow-sm transition-all focus:ring-2 focus:ring-theme-red/20 cursor-pointer"
+              title="Print Resume"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Print / PDF</span>
+              <span className="hidden sm:inline">Print</span>
             </button>
 
             {/* USE THIS TEMPLATE BUTTON (Prominently placed in Top Right Corner during Preview) */}
@@ -484,7 +498,7 @@ export default function TemplatesPage() {
       )}
 
       {/* Main Studio Body */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative print-hide">
         {/* Slide-over / Split Left Resume Content Editor Drawer */}
         {isEditorOpen && (
           <aside className="print-hide shrink-0 z-20">
@@ -503,8 +517,8 @@ export default function TemplatesPage() {
           </aside>
         )}
 
-        {/* Central Preview Stage */}
-        <main className="flex-1 overflow-auto bg-slate-200/80 p-6 sm:p-8 flex justify-center items-start relative">
+        {/* Central Preview Stage (Screen Only) */}
+        <main className="resume-screen-preview flex-1 overflow-auto bg-slate-200/80 p-6 sm:p-8 flex justify-center items-start relative print-hide">
           {/* Quick Floating Button to Re-open Editor if closed and NOT in preview mode */}
           {!isEditorOpen && !isPreviewMode && (
             <button
@@ -547,7 +561,7 @@ export default function TemplatesPage() {
             </div>
           ) : currentTemplate ? (
             <div
-              className="resume-print-wrapper resume-print-target"
+              className="resume-screen-zoom-wrapper"
               style={{
                 transform: `scale(${zoomLevel / 100})`,
                 transformOrigin: 'top center',
@@ -566,6 +580,18 @@ export default function TemplatesPage() {
           )}
         </main>
       </div>
+
+      {/* Dedicated Print Portal mounted directly to body (completely outside #root) */}
+      {currentTemplate &&
+        createPortal(
+          <div id="resume-print-portal" aria-hidden="true">
+            <TemplateRenderer
+              template={currentTemplate}
+              resumeData={activeResumeData}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

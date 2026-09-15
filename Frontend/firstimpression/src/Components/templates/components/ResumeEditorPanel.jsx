@@ -80,7 +80,11 @@ export default function ResumeEditorPanel({
   // Experience handlers
   const handleExperienceChange = (idx, field, value) => {
     const updated = [...experience];
-    updated[idx] = { ...updated[idx], [field]: value };
+    const item = { ...updated[idx], [field]: value };
+    if (field === 'endDate') {
+      item.current = Boolean(value && value.trim().toLowerCase() === 'present');
+    }
+    updated[idx] = item;
     onChange({ ...resumeData, experience: updated });
   };
 

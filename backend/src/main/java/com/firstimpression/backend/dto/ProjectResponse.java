@@ -1,6 +1,5 @@
 package com.firstimpression.backend.dto;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import lombok.Builder;
@@ -15,6 +14,6 @@ public class ProjectResponse {
     private String description;
     private List<String> technologies;
     private String projectLink;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private String startDate;
+    private String endDate;
 }

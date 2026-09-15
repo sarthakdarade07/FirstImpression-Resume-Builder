@@ -1,6 +1,5 @@
 package com.firstimpression.backend.dto;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import lombok.Builder;
@@ -14,8 +13,8 @@ public class WorkExperienceResponse {
     private String companyName;
     private String jobTitle;
     private String location;
-    private LocalDate joinDate;
-    private LocalDate endDate;
+    private String joinDate;
+    private String endDate;
     private String description;
     private List<String> technologies;
 }

@@ -1,6 +1,5 @@
 package com.firstimpression.backend.model;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -59,11 +58,11 @@ public class WorkExperience {
 	@Column(name = "location" , length=20)
 	private String location;
 	
-	@Column(name = "join_date")
-	private LocalDate joinDate;
+	@Column(name = "join_date", length = 50)
+	private String joinDate;
 	
-	@Column(name = "end_date")
-	private LocalDate endDate;
+	@Column(name = "end_date", length = 50)
+	private String endDate;
 	 
 	@Column(length=1000)
 	private String description;

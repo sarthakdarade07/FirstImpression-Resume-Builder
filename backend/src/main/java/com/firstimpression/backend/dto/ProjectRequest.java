@@ -1,6 +1,5 @@
 package com.firstimpression.backend.dto;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
@@ -29,7 +28,7 @@ public class ProjectRequest {
 
     private String projectLink;
 
-    private LocalDate startDate;
+    private String startDate;
 
-    private LocalDate endDate;
+    private String endDate;
 }

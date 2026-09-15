@@ -1,6 +1,5 @@
 package com.firstimpression.backend.dto;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
@@ -23,10 +22,12 @@ public class WorkExperienceRequest {
 		@NotBlank(message = "Job title is required")
 		@Size(max =50 , message= "Company name should not be greater than 50.")
 		private String jobTitle;
-		@Size(max =20 , message= "Company name should not be greater than 20.")
+		@Size(max = 20, message = "Location should not be greater than 20.")
 		private String location;
-		private LocalDate joinDate;
-		private LocalDate endDate;
+		@Size(max = 50, message = "Join date should not be greater than 50 characters.")
+		private String joinDate;
+		@Size(max = 50, message = "End date should not be greater than 50 characters.")
+		private String endDate;
 		@Size(max =1000 , message= "Description should not be greater than 1000 characters.")
 		private String description;
 		private List<String>  technologies;	
