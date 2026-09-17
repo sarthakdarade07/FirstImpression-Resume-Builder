@@ -30,6 +30,7 @@ import {
   sampleResumeData,
   ResumeEditorPanel
 } from '../components/templates';
+import JdAssistantDrawer from '../components/templates/components/JdAssistantDrawer';
 import { resumeApi, transformProfileToResumeData } from '../services/resumeApi';
 
 export default function TemplatesPage() {
@@ -68,6 +69,7 @@ export default function TemplatesPage() {
   const [lastSaved, setLastSaved] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [isJdDrawerOpen, setIsJdDrawerOpen] = useState(false);
 
   const authUser = useSelector((state) => state.auth?.user);
 
@@ -410,6 +412,23 @@ export default function TemplatesPage() {
               </button>
             )}
 
+            {/* JD Match AI Assistant Toggle Button (Edit Mode Only) */}
+            {!isPreviewMode && (
+              <button
+                type="button"
+                onClick={() => setIsJdDrawerOpen((prev) => !prev)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-sm cursor-pointer ${
+                  isJdDrawerOpen
+                    ? 'bg-orange-500 text-white border-orange-600 shadow-orange-500/20'
+                    : 'bg-white border-gray-200 text-gray-700 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200'
+                }`}
+                title="Job Description AI Assistant"
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${isJdDrawerOpen ? 'text-white' : 'text-orange-500'}`} />
+                <span>JD Match</span>
+              </button>
+            )}
+
             {/* Save Changes Button (Edit Mode Only) */}
             {!isPreviewMode && (
               <button
@@ -483,7 +502,7 @@ export default function TemplatesPage() {
 
       {/* Floating Success Toast */}
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-gray-800 animate-in fade-in slide-in-from-bottom-5 duration-300 print-hide">
+        <div className="fixed bottom-20 right-6 z-50 flex items-center gap-3 bg-gray-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-gray-800 animate-in fade-in slide-in-from-bottom-5 duration-300 print-hide">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <div className="text-xs sm:text-sm font-medium">{toastMessage}</div>
           <button
@@ -499,6 +518,13 @@ export default function TemplatesPage() {
 
       {/* Main Studio Body */}
       <div className="flex-1 flex overflow-hidden relative print-hide">
+        {/* Left Side JD Assistant Drawer Slider */}
+        <JdAssistantDrawer
+          isOpen={isJdDrawerOpen}
+          onToggle={() => setIsJdDrawerOpen(!isJdDrawerOpen)}
+          resumeId={resumeId || loadedResume?.id}
+        />
+
         {/* Slide-over / Split Left Resume Content Editor Drawer */}
         {isEditorOpen && (
           <aside className="print-hide shrink-0 z-20">
