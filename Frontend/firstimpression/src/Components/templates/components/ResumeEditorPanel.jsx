@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../../api/axios';
 import {
   User,
   FileText,
@@ -40,10 +41,56 @@ export default function ResumeEditorPanel({
   onSave,
   isSaving = false,
   lastSaved = null,
-  onClose
+  onClose,
+  profileData: propProfileData = null
 }) {
   const [activeTab, setActiveTab] = useState('personal');
   const [newSkillInput, setNewSkillInput] = useState('');
+  const [profileData, setProfileData] = useState(propProfileData);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  useEffect(() => {
+    if (propProfileData) {
+      setProfileData(propProfileData);
+      return;
+    }
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return;
+
+    setLoadingProfile(true);
+    api.get('/api/profile/get-profile')
+      .then((res) => {
+        const data = res.data?.message || res.data;
+        if (data) setProfileData(data);
+      })
+      .catch((err) => {
+        console.warn('Failed to load profile for resume editor:', err?.message || err);
+      })
+      .finally(() => {
+        setLoadingProfile(false);
+      });
+  }, [propProfileData]);
+
+  const profilePersonal = profileData?.personalInformation || {};
+  const profileAuth = profileData?.authResponse || {};
+  const profileExperiences = profileData?.workExperiences || [];
+  const profileEducations = profileData?.educations || [];
+  const profileSkills = profileData?.skills || [];
+  const profileProjects = profileData?.projects || [];
+  const profileCertifications = profileData?.certifications || [];
+  const profileLanguages = profileData?.languages || [];
+
+  const getYearOrDate = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string' && val.includes('-')) return val.split('-')[0];
+    return String(val);
+  };
+
+  const parseTech = (val) => {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') return val.split(',').map((t) => t.trim()).filter(Boolean);
+    return [];
+  };
 
   const personal = resumeData?.personal || {};
   const summary = resumeData?.summary || '';
@@ -359,13 +406,80 @@ export default function ResumeEditorPanel({
         {/* TAB 1: PERSONAL INFORMATION */}
         {activeTab === 'personal' && (
           <div className="space-y-3.5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Contact & Header Details
               </h3>
-              <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-medium">
-                Resume-specific
-              </span>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  const choice = e.target.value;
+                  if (!choice) return;
+                  const name = profilePersonal.name || profileAuth.name || '';
+                  const role = profilePersonal.role || '';
+                  const email = profilePersonal.email || profileAuth.email || '';
+                  const phone = profilePersonal.phoneNo || '';
+                  const loc = profilePersonal.location || '';
+                  const linkedin = profilePersonal.linkedinUrl || '';
+                  const github = profilePersonal.githubUrl || '';
+                  const website = profilePersonal.portfolioUrl || '';
+                  const photo = profilePersonal.photoUrl || '';
+
+                  if (choice === 'all') {
+                    handlePersonalUpdate({
+                      name, fullName: name,
+                      title: role, jobTitle: role,
+                      email, phone,
+                      location: loc, city: loc,
+                      linkedin, github,
+                      website, portfolio: website,
+                      avatar: photo, photoUrl: photo
+                    });
+                  } else if (choice === 'name') handlePersonalUpdate({ name, fullName: name });
+                  else if (choice === 'role') handlePersonalUpdate({ title: role, jobTitle: role });
+                  else if (choice === 'email') handlePersonalUpdate({ email });
+                  else if (choice === 'phone') handlePersonalUpdate({ phone });
+                  else if (choice === 'location') handlePersonalUpdate({ location: loc, city: loc });
+                  else if (choice === 'linkedin') handlePersonalUpdate({ linkedin });
+                  else if (choice === 'github') handlePersonalUpdate({ github });
+                  else if (choice === 'website') handlePersonalUpdate({ website, portfolio: website });
+                  else if (choice === 'photo') handlePersonalUpdate({ avatar: photo, photoUrl: photo });
+
+                  e.target.value = '';
+                }}
+                disabled={!profileData}
+                className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[210px] truncate disabled:opacity-50"
+              >
+                <option value="" disabled>Import from Profile...</option>
+                <option value="all">⚡ Import All Profile Details</option>
+                {(profilePersonal.name || profileAuth.name) && (
+                  <option value="name">Name: {profilePersonal.name || profileAuth.name}</option>
+                )}
+                {profilePersonal.role && (
+                  <option value="role">Role: {profilePersonal.role}</option>
+                )}
+                {(profilePersonal.email || profileAuth.email) && (
+                  <option value="email">Email: {profilePersonal.email || profileAuth.email}</option>
+                )}
+                {profilePersonal.phoneNo && (
+                  <option value="phone">Phone: {profilePersonal.phoneNo}</option>
+                )}
+                {profilePersonal.location && (
+                  <option value="location">Location: {profilePersonal.location}</option>
+                )}
+                {profilePersonal.linkedinUrl && (
+                  <option value="linkedin">LinkedIn</option>
+                )}
+                {profilePersonal.githubUrl && (
+                  <option value="github">GitHub</option>
+                )}
+                {profilePersonal.portfolioUrl && (
+                  <option value="website">Portfolio URL</option>
+                )}
+                {profilePersonal.photoUrl && (
+                  <option value="photo">Profile Photo</option>
+                )}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -501,13 +615,36 @@ export default function ResumeEditorPanel({
         {/* TAB 2: PROFESSIONAL SUMMARY */}
         {activeTab === 'summary' && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Professional Bio / Summary
               </h3>
-              <span className="text-[11px] text-gray-400 font-mono">
-                {summary.length} characters
-              </span>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  const choice = e.target.value;
+                  if (!choice) return;
+                  if (choice === 'profile_summary') {
+                    const bio = profileData?.summary || profilePersonal.summary || profilePersonal.about || '';
+                    if (bio) handleSummaryChange(bio);
+                  } else if (choice === 'generated') {
+                    const role = profilePersonal.role || personal.title || personal.jobTitle || 'Software Engineer';
+                    const gen = `Motivated and results-driven ${role} with expertise in building scalable, performant applications and delivering user-centric digital experiences.`;
+                    handleSummaryChange(gen);
+                  }
+                  e.target.value = '';
+                }}
+                disabled={!profileData}
+                className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[210px] truncate disabled:opacity-50"
+              >
+                <option value="" disabled>Import Summary...</option>
+                {(profileData?.summary || profilePersonal.summary || profilePersonal.about) && (
+                  <option value="profile_summary">Use Profile Bio</option>
+                )}
+                <option value="generated">
+                  Generate for {profilePersonal.role || personal.title || 'Role'}
+                </option>
+              </select>
             </div>
 
             <textarea
@@ -523,18 +660,80 @@ export default function ResumeEditorPanel({
         {/* TAB 3: WORK EXPERIENCE */}
         {activeTab === 'experience' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Experience History ({experience.length})
               </h3>
-              <button
-                type="button"
-                onClick={handleAddExperience}
-                className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Position</span>
-              </button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    if (val === '__all__') {
+                      const toAdd = profileExperiences.map((w) => ({
+                        id: `exp-${Date.now()}-${w.id || Math.random()}`,
+                        role: w.jobTitle || 'Job Title',
+                        company: w.companyName || 'Company Name',
+                        location: w.location || '',
+                        startDate: getYearOrDate(w.joinDate),
+                        endDate: w.endDate ? getYearOrDate(w.endDate) : (w.currentWorking ? 'Present' : ''),
+                        current: Boolean(w.currentWorking || w.endDate === 'Present'),
+                        description: w.description || '',
+                        highlights: Array.isArray(w.technologies) && w.technologies.length > 0
+                          ? [`Key technologies: ${w.technologies.join(', ')}`]
+                          : (w.description ? [] : ['Key accomplishment or impact metric.'])
+                      }));
+                      onChange({ ...resumeData, experience: [...toAdd, ...experience] });
+                    } else {
+                      const w = profileExperiences.find((item) => String(item.id) === val);
+                      if (w) {
+                        const newExp = {
+                          id: `exp-${Date.now()}`,
+                          role: w.jobTitle || 'Job Title',
+                          company: w.companyName || 'Company Name',
+                          location: w.location || '',
+                          startDate: getYearOrDate(w.joinDate),
+                          endDate: w.endDate ? getYearOrDate(w.endDate) : (w.currentWorking ? 'Present' : ''),
+                          current: Boolean(w.currentWorking || w.endDate === 'Present'),
+                          description: w.description || '',
+                          highlights: Array.isArray(w.technologies) && w.technologies.length > 0
+                            ? [`Key technologies: ${w.technologies.join(', ')}`]
+                            : (w.description ? [] : ['Key accomplishment or impact metric.'])
+                        };
+                        onChange({ ...resumeData, experience: [newExp, ...experience] });
+                      }
+                    }
+                    e.target.value = '';
+                  }}
+                  disabled={profileExperiences.length === 0}
+                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {profileExperiences.length > 0 ? `+ Profile Experience (${profileExperiences.length})...` : 'No profile experience'}
+                  </option>
+                  {profileExperiences.length > 1 && (
+                    <option value="__all__">+ Add All from Profile ({profileExperiences.length})</option>
+                  )}
+                  {profileExperiences.map((w) => {
+                    const isAdded = experience.some((ex) => (ex.role || '').toLowerCase() === (w.jobTitle || '').toLowerCase() && (ex.company || '').toLowerCase() === (w.companyName || '').toLowerCase());
+                    return (
+                      <option key={w.id} value={w.id}>
+                        {w.jobTitle || 'Role'} - {w.companyName || 'Company'} {isAdded ? '✓' : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleAddExperience}
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
             </div>
 
             {experience.map((exp, idx) => (
@@ -663,18 +862,75 @@ export default function ResumeEditorPanel({
         {/* TAB 4: EDUCATION */}
         {activeTab === 'education' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Education ({education.length})
               </h3>
-              <button
-                type="button"
-                onClick={handleAddEducation}
-                className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Education</span>
-              </button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    if (val === '__all__') {
+                      const toAdd = profileEducations.map((ed) => ({
+                        id: `edu-${Date.now()}-${ed.id || Math.random()}`,
+                        degree: [ed.specialization, ed.educationType].filter(Boolean).join(' in ') || ed.educationType || 'Degree',
+                        institution: ed.instituteName || ed.boardOrUniversity || 'University Name',
+                        location: '',
+                        startDate: ed.startYear ? String(ed.startYear) : '',
+                        endDate: ed.endYear ? String(ed.endYear) : '',
+                        gpa: ed.score ? `${ed.score}${ed.scoreType ? ` (${ed.scoreType})` : ''}` : '',
+                        highlights: []
+                      }));
+                      onChange({ ...resumeData, education: [...toAdd, ...education] });
+                    } else {
+                      const ed = profileEducations.find((item) => String(item.id) === val);
+                      if (ed) {
+                        const newEdu = {
+                          id: `edu-${Date.now()}`,
+                          degree: [ed.specialization, ed.educationType].filter(Boolean).join(' in ') || ed.educationType || 'Degree',
+                          institution: ed.instituteName || ed.boardOrUniversity || 'University Name',
+                          location: '',
+                          startDate: ed.startYear ? String(ed.startYear) : '',
+                          endDate: ed.endYear ? String(ed.endYear) : '',
+                          gpa: ed.score ? `${ed.score}${ed.scoreType ? ` (${ed.scoreType})` : ''}` : '',
+                          highlights: []
+                        };
+                        onChange({ ...resumeData, education: [newEdu, ...education] });
+                      }
+                    }
+                    e.target.value = '';
+                  }}
+                  disabled={profileEducations.length === 0}
+                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {profileEducations.length > 0 ? `+ Profile Education (${profileEducations.length})...` : 'No profile education'}
+                  </option>
+                  {profileEducations.length > 1 && (
+                    <option value="__all__">+ Add All from Profile ({profileEducations.length})</option>
+                  )}
+                  {profileEducations.map((ed) => {
+                    const label = [ed.specialization, ed.educationType].filter(Boolean).join(' - ') || ed.educationType || 'Degree';
+                    const isAdded = education.some((edu) => (edu.institution || '').toLowerCase() === (ed.instituteName || '').toLowerCase());
+                    return (
+                      <option key={ed.id} value={ed.id}>
+                        {label} ({ed.instituteName || 'Institute'}) {isAdded ? '✓' : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleAddEducation}
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
             </div>
 
             {education.map((edu, idx) => (
@@ -756,10 +1012,63 @@ export default function ResumeEditorPanel({
         {/* TAB 5: SKILLS */}
         {activeTab === 'skills' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Skills & Technologies
               </h3>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (!val) return;
+                  if (val === '__all__') {
+                    const titles = profileSkills.map((s) => s.title?.trim()).filter(Boolean);
+                    if (skills.length > 0 && skills[0].items) {
+                      const existing = new Set(skills.flatMap((g) => g.items || []).map((s) => (typeof s === 'string' ? s.toLowerCase() : s.name?.toLowerCase())));
+                      const newTitles = titles.filter((t) => !existing.has(t.toLowerCase()));
+                      if (newTitles.length > 0) {
+                        const updated = [...skills];
+                        updated[0] = { ...updated[0], items: [...updated[0].items, ...newTitles] };
+                        onChange({ ...resumeData, skills: updated });
+                      }
+                    } else {
+                      const existing = new Set(skills.map((s) => (typeof s === 'string' ? s.toLowerCase() : s.name?.toLowerCase())));
+                      const newSkills = profileSkills
+                        .filter((s) => s.title && !existing.has(s.title.toLowerCase()))
+                        .map((s) => ({ name: s.title, level: s.level || 'Proficient' }));
+                      if (newSkills.length > 0) {
+                        onChange({ ...resumeData, skills: [...skills, ...newSkills] });
+                      }
+                    }
+                  } else {
+                    const sk = profileSkills.find((item) => String(item.id) === val);
+                    if (sk && sk.title) {
+                      if (skills.length > 0 && skills[0].items) {
+                        const updated = [...skills];
+                        updated[0] = { ...updated[0], items: [...updated[0].items, sk.title] };
+                        onChange({ ...resumeData, skills: updated });
+                      } else {
+                        onChange({ ...resumeData, skills: [...skills, { name: sk.title, level: sk.level || 'Proficient' }] });
+                      }
+                    }
+                  }
+                  e.target.value = '';
+                }}
+                disabled={profileSkills.length === 0}
+                className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+              >
+                <option value="" disabled>
+                  {profileSkills.length > 0 ? `+ Profile Skills (${profileSkills.length})...` : 'No profile skills'}
+                </option>
+                {profileSkills.length > 1 && (
+                  <option value="__all__">+ Add All from Profile ({profileSkills.length})</option>
+                )}
+                {profileSkills.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.title} ({s.level || 'Proficient'})
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Add Skill Input */}
@@ -802,7 +1111,7 @@ export default function ResumeEditorPanel({
                           key={sIdx}
                           className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-800 shadow-2xl"
                         >
-                          <span>{typeof sk === 'string' ? sk : sk.name}</span>
+                          <span>{typeof sk === 'string' ? sk : (sk.title || sk.name || '')}</span>
                           <button
                             type="button"
                             onClick={() => handleRemoveSkill(gIdx, sIdx)}
@@ -820,7 +1129,7 @@ export default function ResumeEditorPanel({
               // Flat Skills
               <div className="flex flex-wrap gap-1.5">
                 {skills.map((sk, sIdx) => {
-                  const name = typeof sk === 'string' ? sk : sk.name || '';
+                  const name = typeof sk === 'string' ? sk : (sk.title || sk.name || '');
                   return (
                     <span
                       key={sIdx}
@@ -845,18 +1154,70 @@ export default function ResumeEditorPanel({
         {/* TAB 6: PROJECTS */}
         {activeTab === 'projects' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Featured Projects ({projects.length})
               </h3>
-              <button
-                type="button"
-                onClick={handleAddProject}
-                className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Project</span>
-              </button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    if (val === '__all__') {
+                      const toAdd = profileProjects.map((p) => ({
+                        id: `proj-${Date.now()}-${p.id || Math.random()}`,
+                        name: p.title || 'Project Name',
+                        link: p.projectLink || '',
+                        technologies: parseTech(p.technologies),
+                        description: p.description || '',
+                        highlights: []
+                      }));
+                      onChange({ ...resumeData, projects: [...toAdd, ...projects] });
+                    } else {
+                      const p = profileProjects.find((item) => String(item.id) === val);
+                      if (p) {
+                        const newProj = {
+                          id: `proj-${Date.now()}`,
+                          name: p.title || 'Project Name',
+                          link: p.projectLink || '',
+                          technologies: parseTech(p.technologies),
+                          description: p.description || '',
+                          highlights: []
+                        };
+                        onChange({ ...resumeData, projects: [newProj, ...projects] });
+                      }
+                    }
+                    e.target.value = '';
+                  }}
+                  disabled={profileProjects.length === 0}
+                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {profileProjects.length > 0 ? `+ Profile Projects (${profileProjects.length})...` : 'No profile projects'}
+                  </option>
+                  {profileProjects.length > 1 && (
+                    <option value="__all__">+ Add All from Profile ({profileProjects.length})</option>
+                  )}
+                  {profileProjects.map((p) => {
+                    const isAdded = projects.some((pr) => (pr.name || '').toLowerCase() === (p.title || '').toLowerCase());
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.title || 'Untitled Project'} {isAdded ? '✓' : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleAddProject}
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
             </div>
 
             {projects.map((proj, idx) => (
@@ -938,18 +1299,68 @@ export default function ResumeEditorPanel({
         {/* TAB 7: CERTIFICATIONS */}
         {activeTab === 'certifications' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Certifications ({certifications.length})
               </h3>
-              <button
-                type="button"
-                onClick={handleAddCert}
-                className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Certification</span>
-              </button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    if (val === '__all__') {
+                      const toAdd = profileCertifications.map((c) => ({
+                        id: `cert-${Date.now()}-${c.id || Math.random()}`,
+                        name: c.title || 'Certificate Name',
+                        issuer: c.issuedBy || '',
+                        date: c.issueDate ? getYearOrDate(c.issueDate) : '',
+                        url: c.url || ''
+                      }));
+                      onChange({ ...resumeData, certifications: [...toAdd, ...certifications] });
+                    } else {
+                      const c = profileCertifications.find((item) => String(item.id) === val);
+                      if (c) {
+                        const newCert = {
+                          id: `cert-${Date.now()}`,
+                          name: c.title || 'Certificate Name',
+                          issuer: c.issuedBy || '',
+                          date: c.issueDate ? getYearOrDate(c.issueDate) : '',
+                          url: c.url || ''
+                        };
+                        onChange({ ...resumeData, certifications: [newCert, ...certifications] });
+                      }
+                    }
+                    e.target.value = '';
+                  }}
+                  disabled={profileCertifications.length === 0}
+                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {profileCertifications.length > 0 ? `+ Profile Certs (${profileCertifications.length})...` : 'No profile certs'}
+                  </option>
+                  {profileCertifications.length > 1 && (
+                    <option value="__all__">+ Add All from Profile ({profileCertifications.length})</option>
+                  )}
+                  {profileCertifications.map((c) => {
+                    const isAdded = certifications.some((cr) => (cr.name || '').toLowerCase() === (c.title || '').toLowerCase());
+                    return (
+                      <option key={c.id} value={c.id}>
+                        {c.title} ({c.issuedBy || 'Issuer'}) {isAdded ? '✓' : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleAddCert}
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
             </div>
 
             {certifications.map((cert, idx) => (
@@ -1010,18 +1421,63 @@ export default function ResumeEditorPanel({
         {/* TAB 8: LANGUAGES */}
         {activeTab === 'languages' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Languages ({languages.length})
               </h3>
-              <button
-                type="button"
-                onClick={handleAddLang}
-                className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Language</span>
-              </button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    if (val === '__all__') {
+                      const toAdd = profileLanguages.map((l) => ({
+                        name: l.language || l.name || 'Language',
+                        level: l.level || 'Fluent'
+                      }));
+                      onChange({ ...resumeData, languages: [...languages, ...toAdd] });
+                    } else {
+                      const l = profileLanguages.find((item) => String(item.id) === val);
+                      if (l) {
+                        const newLang = {
+                          name: l.language || l.name || 'Language',
+                          level: l.level || 'Fluent'
+                        };
+                        onChange({ ...resumeData, languages: [...languages, newLang] });
+                      }
+                    }
+                    e.target.value = '';
+                  }}
+                  disabled={profileLanguages.length === 0}
+                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {profileLanguages.length > 0 ? `+ Profile Languages (${profileLanguages.length})...` : 'No profile languages'}
+                  </option>
+                  {profileLanguages.length > 1 && (
+                    <option value="__all__">+ Add All from Profile ({profileLanguages.length})</option>
+                  )}
+                  {profileLanguages.map((l) => {
+                    const langName = l.language || l.name;
+                    const isAdded = languages.some((lr) => (lr.name || '').toLowerCase() === (langName || '').toLowerCase());
+                    return (
+                      <option key={l.id} value={l.id}>
+                        {langName} ({l.level || 'Fluent'}) {isAdded ? '✓' : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleAddLang}
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
             </div>
 
             {languages.map((lang, idx) => (

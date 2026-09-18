@@ -27,7 +27,7 @@ public class RegisterRequest {
      @Size(min=6,max=20)
     private String password;
     private String profileImageUrl;
-    private String subscriptionPlan = "Basic";
+    private String subscriptionPlan;
 	public String getName() {
 		return name;
 	}

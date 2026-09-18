@@ -298,6 +298,21 @@ export const resumeApi = {
       const filtered = existing.filter((r) => r.id !== id);
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filtered));
     } catch {}
+  },
+
+  /**
+   * Tailor a resume to its associated Job Description via Gemini
+   * @param {string} id - Resume ID
+   * @returns {Promise<Object>} Tailor response with alteredResumeData, reasoning, gapInJdAndResume, requiredSkills
+   */
+  async tailorResumeToJd(id) {
+    if (!id) {
+      throw new Error('Resume ID is required to tailor resume.');
+    }
+    const response = await api.post(`/api/resumes/${id}/tailor-to-jd`, null, {
+      timeout: 180000
+    });
+    return response.data;
   }
 };
 

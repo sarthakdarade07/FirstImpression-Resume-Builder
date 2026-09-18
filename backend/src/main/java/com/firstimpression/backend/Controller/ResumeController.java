@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.firstimpression.backend.Services.ResumeService;
 import com.firstimpression.backend.dto.ResumeCreateRequest;
 import com.firstimpression.backend.dto.ResumeResponse;
+import com.firstimpression.backend.dto.ResumeTailorResponse;
 import com.firstimpression.backend.model.Users;
 
 import jakarta.validation.Valid;
@@ -37,7 +38,7 @@ public class ResumeController {
 			return null;
 		}
 		return (Users) authentication.getPrincipal();
-	}
+	} 
 
 	@GetMapping
 	public ResponseEntity<List<ResumeResponse>> getUserResumes(Authentication authentication) {
@@ -101,5 +102,18 @@ public class ResumeController {
 		log.info("REST: DELETE /api/resumes/{} for user: {}", id, user.getId());
 		resumeService.deleteResume(user, id);
 		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/tailor-to-jd")
+	public ResponseEntity<ResumeTailorResponse> tailorResumeToJd(
+			Authentication authentication,
+			@PathVariable String id
+	) {
+		Users user = getAuthenticatedUser(authentication);
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		log.info("REST: POST /api/resumes/{}/tailor-to-jd for user: {}", id, user.getId());
+		return ResponseEntity.ok(resumeService.tailorResumeToJd(user, id));
 	}
 }

@@ -523,6 +523,14 @@ export default function TemplatesPage() {
           isOpen={isJdDrawerOpen}
           onToggle={() => setIsJdDrawerOpen(!isJdDrawerOpen)}
           resumeId={resumeId || loadedResume?.id}
+          onResumeAltered={(alteredData) => {
+            setEditableData(alteredData);
+            setSavedResumeData(alteredData);
+            setLastSaved(new Date());
+            setToastMessage('Resume tailored to match Job Description!');
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3500);
+          }}
         />
 
         {/* Slide-over / Split Left Resume Content Editor Drawer */}

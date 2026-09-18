@@ -22,7 +22,7 @@
 	</properties>
 
 	<dependencies>
- 
+
 		<!---  JWT   -->
 
 		<!-- JJWT API -->
@@ -98,6 +98,25 @@
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<!--  Gemini -->
+	<dependency>
+    <groupId>com.google.genai</groupId>
+    <artifactId>google-genai</artifactId>
+    <version>1.67.0</version>
+</dependency>
+
+		<!-- PDF & DOCX Extraction -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.31</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.5</version>
 		</dependency>
 
 		<!-- Lombok -->

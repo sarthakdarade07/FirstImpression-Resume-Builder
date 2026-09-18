@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../../../../api/axios";
+import resumeApi from "../../../../services/resumeApi";
 import { uploadJd as uploadJdThunk, fetchJdByResumeId } from "../../../../redux/thunks/jdThunk";
 
 const useJDAssistant = ({ resumeId = null }) => {
@@ -9,9 +10,12 @@ const useJDAssistant = ({ resumeId = null }) => {
 
   const [isUploading, setIsUploading] = useState(false);
   const [isQuerying, setIsQuerying] = useState(false);
+  const [isTailoring, setIsTailoring] = useState(false);
 
   const [uploadError, setUploadError] = useState(null);
   const [queryError, setQueryError] = useState(null);
+  const [tailorError, setTailorError] = useState(null);
+  const [tailorResult, setTailorResult] = useState(null);
 
   useEffect(() => {
     if (resumeId) {
@@ -143,9 +147,41 @@ const useJDAssistant = ({ resumeId = null }) => {
     }
   };
 
+  const tailorResume = async (targetResumeId = null) => {
+    setTailorError(null);
+    const activeId = targetResumeId || resumeId;
+    if (!activeId) {
+      const err = "Please save or open a resume first to tailor it.";
+      setTailorError(err);
+      throw new Error(err);
+    }
+
+    setIsTailoring(true);
+    try {
+      const result = await resumeApi.tailorResumeToJd(activeId);
+      setTailorResult(result);
+      return result;
+    } catch (error) {
+      const errMsg =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Failed to tailor resume with AI";
+
+      const message =
+        typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg);
+
+      setTailorError(message);
+      throw error;
+    } finally {
+      setIsTailoring(false);
+    }
+  };
+
   const clearErrors = () => {
     setUploadError(null);
     setQueryError(null);
+    setTailorError(null);
   };
 
   return {
@@ -155,12 +191,17 @@ const useJDAssistant = ({ resumeId = null }) => {
 
     uploadJd,
     updateJd,
+    tailorResume,
 
     isUploading,
     isQuerying,
+    isTailoring,
 
     uploadError,
     queryError,
+    tailorError,
+    tailorResult,
+    setTailorResult,
 
     clearErrors,
   };

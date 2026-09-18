@@ -13,6 +13,8 @@ import {
   MapPin,
   ChevronDown,
   ChevronUp,
+  Zap,
+  CheckCircle2,
 } from "lucide-react";
 
 import useJDAssistant from "./hooks/useJDAssistant";
@@ -207,6 +209,7 @@ export default function JdAssistantDrawer({
   isOpen = false,
   onToggle,
   resumeId = null,
+  onResumeAltered = null,
 }) {
   // ============================================================
   // BUSINESS / API LOGIC
@@ -218,10 +221,14 @@ export default function JdAssistantDrawer({
     isFetchingJd,
     uploadJd,
     updateJd,
+    tailorResume,
     isUploading,
     isQuerying,
+    isTailoring,
     uploadError,
     queryError,
+    tailorError,
+    tailorResult,
   } = useJDAssistant({
     resumeId,
   });
@@ -343,6 +350,36 @@ export default function JdAssistantDrawer({
     } catch (error) {
       // Error state is managed by useJDAssistant
       console.error("JD query failed:", error);
+    }
+  };
+
+  // ============================================================
+  // TAILOR RESUME TO JD
+  // ============================================================
+
+  const handleTailorResume = async () => {
+    try {
+      const res = await tailorResume(resumeId);
+      if (res?.alteredResumeData && onResumeAltered) {
+        onResumeAltered(res.alteredResumeData);
+      }
+      setHistory((prev) => [
+        ...prev,
+        {
+          id: `tailor-${Date.now()}`,
+          type: "tailor",
+          message: "Resume tailored to match the Job Description.",
+          reasoning: res?.reasoning,
+          gapInJdAndResume: res?.gapInJdAndResume,
+          requiredSkills: res?.requiredSkills,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
+    } catch (error) {
+      console.error("Tailor resume failed:", error);
     }
   };
 
@@ -553,6 +590,117 @@ export default function JdAssistantDrawer({
               </div>
 
               <GenericFeatureRenderer data={features} showAll={showFullDetails} />
+            </div>
+          )}
+
+          {/* Alter Resume to JD Action Button & Status */}
+          {resumeId && (
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/80 rounded-2xl p-3.5 space-y-2.5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-xs">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900">Tailor Resume with AI</h4>
+                    <p className="text-[10px] text-gray-500">Align your resume content to this job description</p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleTailorResume}
+                disabled={isTailoring || (!currentJd && !features)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 text-white disabled:text-gray-400 font-bold text-xs rounded-xl shadow-sm hover:shadow transition disabled:cursor-not-allowed">
+                {isTailoring ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Tailoring Resume according to JD...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    <span>Alter Resume According to JD</span>
+                  </>
+                )}
+              </button>
+
+              {!currentJd && !features && (
+                <p className="text-[10px] text-amber-700 text-center font-medium">
+                  Please upload or analyze a Job Description above first.
+                </p>
+              )}
+
+              {tailorError && (
+                <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-start gap-1.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{tailorError}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tailor Result Overview (Reasoning, Gaps, Required Skills) */}
+          {tailorResult && (
+            <div className="bg-white border border-orange-200 rounded-2xl p-3.5 space-y-3 shadow-sm animate-in fade-in">
+              <div className="flex items-center gap-1.5 border-b border-gray-100 pb-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <h4 className="text-xs font-bold text-gray-900">Resume Tailored Successfully</h4>
+              </div>
+
+              {/* Strategic Reasoning */}
+              {tailorResult.reasoning && (
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">
+                    Strategic AI Reasoning
+                  </span>
+                  <p className="text-xs text-gray-700 bg-gray-50 p-2.5 rounded-xl border border-gray-100 leading-relaxed whitespace-pre-wrap">
+                    {tailorResult.reasoning}
+                  </p>
+                </div>
+              )}
+
+              {/* Gap in JD and Resume */}
+              {tailorResult.gapInJdAndResume && (
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 block">
+                    Gaps Identified (JD vs Resume)
+                  </span>
+                  <p className="text-xs text-gray-700 bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/60 leading-relaxed whitespace-pre-wrap">
+                    {tailorResult.gapInJdAndResume}
+                  </p>
+                </div>
+              )}
+
+              {/* Skills Needed (Unmatched) */}
+              {(tailorResult.skillsNeed || tailorResult.requiredSkills) && (
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 block">
+                    Skills Needed (Unmatched)
+                  </span>
+                  {Array.isArray(tailorResult.skillsNeed || tailorResult.requiredSkills) ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {(tailorResult.skillsNeed || tailorResult.requiredSkills).map((skill, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 rounded-md text-[11px] font-medium">
+                          {typeof skill === "object" ? (skill.title || skill.skill || skill.name || '') : String(skill)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-700 bg-gray-50 p-2.5 rounded-xl border border-gray-100 whitespace-pre-wrap">
+                      {String(tailorResult.skillsNeed || tailorResult.requiredSkills)}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="pt-1 text-[11px] text-emerald-700 font-medium flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Resume preview and editor updated automatically!</span>
+              </div>
             </div>
           )}
 
