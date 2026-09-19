@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, FileText, MoreVertical, LayoutTemplate, ShieldCheck, TrendingUp, Users, Clock, ArrowRight, Eye, Check, Sparkles, Trash2, Loader2 } from 'lucide-react';
+import { Plus, FileText, MoreVertical, LayoutTemplate, ShieldCheck, TrendingUp, Users, Clock, ArrowRight, Eye, Check, Sparkles, Trash2, Loader2, Briefcase, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
@@ -8,11 +8,22 @@ import { routes } from '../routes/routes';
 import { templateApi } from '../components/templates/services/templateApi';
 import { fallbackTemplates } from '../components/templates/data/localTemplates';
 import { resumeApi } from '../services/resumeApi';
+import { jobApi } from '../services/jobApi';
 
-const DashboardPage = () => {
+const DashboardPage = ({ initialTab }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'My Resumes');
+  const getInitialTab = () => {
+    if (location.pathname === routes.TEMPLATES || initialTab === 'Templates') {
+      return 'Templates';
+    }
+    return location.state?.activeTab || 'My Resumes';
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  useEffect(() => {
+    setActiveTab(getInitialTab());
+  }, [location.pathname, location.state, initialTab]);
   const [templatesList, setTemplatesList] = useState(fallbackTemplates);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [loadingTemplates, setLoadingTemplates] = useState(false);
@@ -35,8 +46,13 @@ const DashboardPage = () => {
     }
   };
 
+  const [dailyJob, setDailyJob] = useState(null);
+
   useEffect(() => {
     loadResumes();
+    jobApi.getDailyJob().then((data) => {
+      if (data) setDailyJob(data);
+    });
   }, []);
 
   useEffect(() => {
@@ -65,7 +81,7 @@ const DashboardPage = () => {
     try {
       const created = await resumeApi.createResumeFromTemplate(tpl);
       // Immediately open in full view editor with the created resume
-      navigate(`${routes.TEMPLATES}?template=${tpl.slug}&resumeId=${created.id}&edit=true`);
+      navigate(`${routes.RESUME}?template=${tpl.slug}&resumeId=${created.id}&edit=true`);
     } catch (err) {
       console.error('Failed to create resume:', err);
     } finally {
@@ -142,30 +158,70 @@ const DashboardPage = () => {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-3 gap-6"
           >
-            {[
-              { label: 'Total Resumes', value: userResumes.length.toString(), icon: FileText },
-              { label: 'Profile Views', value: '124', icon: Users, trend: '+12% this week' },
-              { label: 'Avg. ATS Score', value: '86%', icon: TrendingUp },
-            ].map((stat, i) => (
-              <motion.div key={i} variants={itemVariants} className="bg-white p-6 rounded-2xl border border-gray-100/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.06)] transition-shadow duration-300">
+            {/* 1. Total Resumes */}
+            <motion.div variants={itemVariants} className="bg-white p-6 rounded-2xl border border-gray-100/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col justify-between">
+              <div>
                 <div className="flex justify-between items-start mb-4">
                   <div className="text-gray-400">
-                    <stat.icon strokeWidth={1.5} className="w-6 h-6" />
+                    <FileText strokeWidth={1.5} className="w-6 h-6" />
                   </div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-900 tracking-tight">{stat.value}</div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <h4 className="text-gray-500 text-sm font-medium">{stat.label}</h4>
-                    {stat.trend && (
-                      <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        {stat.trend}
-                      </span>
-                    )}
+                  <div className="text-3xl font-bold text-gray-900 tracking-tight">{userResumes.length}</div>
+                  <h4 className="text-gray-500 text-sm font-medium mt-1">Total Resumes</h4>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 2. Daily Job Opening (Replaced Profile Views) */}
+            <motion.div variants={itemVariants} className="bg-white p-6 rounded-2xl border border-gray-100/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Briefcase strokeWidth={1.5} className="w-5 h-5 text-[var(--theme-red)]" />
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Daily Job Opening</span>
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
+                    Featured
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-gray-900 tracking-tight truncate">
+                    {dailyJob?.companyName || 'Stripe'}
+                  </div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate mt-0.5">
+                    {dailyJob?.roleTitle || 'Frontend Software Engineer'}
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-1 truncate">
+                    {dailyJob?.location || 'Remote'} {dailyJob?.salary ? `• ${dailyJob.salary}` : ''}
+                  </p>
+                </div>
+              </div>
+              <a
+                href={dailyJob?.applyUrl || 'https://stripe.com/jobs'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center justify-between w-full px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-red-50 text-gray-700 hover:text-[var(--theme-red)] border border-gray-100 hover:border-red-200/60 text-xs font-semibold transition-all group/btn"
+              >
+                <span>Apply Opening</span>
+                <ExternalLink className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+              </a>
+            </motion.div>
+
+            {/* 3. Avg. ATS Score */}
+            <motion.div variants={itemVariants} className="bg-white p-6 rounded-2xl border border-gray-100/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="text-gray-400">
+                    <TrendingUp strokeWidth={1.5} className="w-6 h-6" />
                   </div>
                 </div>
-              </motion.div>
-            ))}
+                <div>
+                  <div className="text-3xl font-bold text-gray-900 tracking-tight">86%</div>
+                  <h4 className="text-gray-500 text-sm font-medium mt-1">Avg. ATS Score</h4>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
 
@@ -215,7 +271,7 @@ const DashboardPage = () => {
 
                 <button
                   type="button"
-                  onClick={() => navigate(`${routes.TEMPLATES}?preview=true`)}
+                  onClick={() => navigate(`${routes.RESUME}?preview=true`)}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 bg-theme-red hover:bg-theme-red/90 text-white text-xs font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
                 >
                   <span>Open Studio</span>
@@ -238,7 +294,7 @@ const DashboardPage = () => {
                 variants={itemVariants}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                onClick={() => setActiveTab('Templates')}
+                onClick={() => navigate(routes.TEMPLATES)}
                 className="group flex flex-col items-center justify-center gap-4 h-[260px] rounded-2xl border border-dashed border-gray-300 bg-gray-50/50 hover:bg-white hover:border-theme-red/50 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="w-14 h-14 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -257,7 +313,7 @@ const DashboardPage = () => {
                 <motion.div 
                   variants={itemVariants}
                   key={resume.id || idx} 
-                  onClick={() => navigate(`${routes.TEMPLATES}?template=${resume.templateSlug}&resumeId=${resume.id}&edit=true`)}
+                  onClick={() => navigate(`${routes.RESUME}?template=${resume.templateSlug}&resumeId=${resume.id}&edit=true`)}
                   className="group relative flex flex-col h-[260px] rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-xl hover:border-gray-300 transition-all duration-300 p-6 overflow-hidden cursor-pointer"
                 >
                   {/* Top Header */}
@@ -341,7 +397,7 @@ const DashboardPage = () => {
                       <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 p-4 backdrop-blur-[2px]">
                         <button
                           type="button"
-                          onClick={() => navigate(`${routes.TEMPLATES}?template=${tpl.slug}&preview=true`)}
+                          onClick={() => navigate(`${routes.RESUME}?template=${tpl.slug}&preview=true`)}
                           className="px-4 py-2 bg-white text-gray-900 text-xs font-bold rounded-xl shadow-lg hover:bg-gray-100 transition-transform hover:scale-105 flex items-center gap-1.5 cursor-pointer"
                         >
                           <Eye className="w-4 h-4 text-theme-red" />

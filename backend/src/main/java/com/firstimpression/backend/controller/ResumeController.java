@@ -1,6 +1,7 @@
-package com.firstimpression.backend.Controller;
+package com.firstimpression.backend.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import com.firstimpression.backend.Services.ResumeService;
 import com.firstimpression.backend.dto.ResumeCreateRequest;
 import com.firstimpression.backend.dto.ResumeResponse;
 import com.firstimpression.backend.dto.ResumeTailorResponse;
+import com.firstimpression.backend.dto.ResumeUpdateRequest;
 import com.firstimpression.backend.model.Users;
 
 import jakarta.validation.Valid;
@@ -115,5 +117,23 @@ public class ResumeController {
 		}
 		log.info("REST: POST /api/resumes/{}/tailor-to-jd for user: {}", id, user.getId());
 		return ResponseEntity.ok(resumeService.tailorResumeToJd(user, id));
+	}
+	
+	@PostMapping("/{id}/update-resume")
+	public ResponseEntity<?> updateResume(
+			@PathVariable("id") String resumeId,
+			 @RequestBody ResumeUpdateRequest req,
+			 Authentication authentication){
+		
+		Users user = getAuthenticatedUser(authentication);
+		 if (user == null) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required");
+	        }
+		
+		 String query = req.getQuery();
+		 
+		 String response = resumeService.updateResume(user, resumeId, query);
+		  
+		 return ResponseEntity.ok(Map.of("response",response));
 	}
 }

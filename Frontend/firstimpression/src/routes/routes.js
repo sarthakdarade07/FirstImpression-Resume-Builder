@@ -13,6 +13,7 @@ export const routes = {
   FEATURES: "/features",
   PRICING: "/pricing",
   ABOUT_US: "/about-us",
+  RESUME: "/resume",
 };
 
 

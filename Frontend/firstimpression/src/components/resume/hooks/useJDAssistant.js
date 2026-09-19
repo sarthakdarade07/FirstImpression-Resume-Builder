@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import api from "../../../../api/axios";
-import resumeApi from "../../../../services/resumeApi";
-import { uploadJd as uploadJdThunk, fetchJdByResumeId } from "../../../../redux/thunks/jdThunk";
+import api from "../../../api/axios";
+import resumeApi from "../../../services/resumeApi";
+import { uploadJd as uploadJdThunk, fetchJdByResumeId } from "../../../redux/thunks/jdThunk";
 
 const useJDAssistant = ({ resumeId = null }) => {
   const dispatch = useDispatch();
@@ -18,7 +18,7 @@ const useJDAssistant = ({ resumeId = null }) => {
   const [tailorResult, setTailorResult] = useState(null);
 
   useEffect(() => {
-    if (resumeId) {
+    if (resumeId) { 
       dispatch(fetchJdByResumeId(resumeId));
     }
   }, [dispatch, resumeId]);
@@ -102,13 +102,13 @@ const useJDAssistant = ({ resumeId = null }) => {
     }
   };
 
-  const updateJd = async (jdId, query) => {
+  const updateResume = async (resumeId, query) => {
     setQueryError(null);
-
+ 
     const cleanQuery = query?.trim();
 
-    if (!jdId) {
-      const error = "JD ID is required.";
+    if (!resumeId) {
+      const error = "resume not found";
       setQueryError(error);
       throw new Error(error);
     }
@@ -122,13 +122,25 @@ const useJDAssistant = ({ resumeId = null }) => {
     setIsQuerying(true);
 
     try {
-      const response = await api.post(`/api/gemini/jd/${jdId}/update`, {
+      const response = await api.post(`/api/resumes/${resumeId}/update-resume`, {
         query: cleanQuery,
       }, {
-        timeout: 60000,
+        timeout: 120000,
       });
+        
+      const freshResume = await resumeApi.getResumeById(resumeId);
 
-      return response.data;
+       const parsedData = freshResume?.resumeDataJson
+         ? typeof freshResume.resumeDataJson === "string"
+           ? JSON.parse(freshResume.resumeDataJson)
+           : freshResume.resumeDataJson
+         : freshResume;
+
+          setTailorResult(parsedData);
+      return {
+        ...response.data,
+        updatedResumeData: parsedData,
+      };
     } catch (error) {
       const errMsg =
         error.response?.data?.message ||
@@ -136,8 +148,7 @@ const useJDAssistant = ({ resumeId = null }) => {
         error.message ||
         "Query failed";
 
-      const message =
-        typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg);
+      const message = typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg);
 
       setQueryError(message);
 
@@ -190,7 +201,7 @@ const useJDAssistant = ({ resumeId = null }) => {
     isFetchingJd,
 
     uploadJd,
-    updateJd,
+    updateResume,
     tailorResume,
 
     isUploading,

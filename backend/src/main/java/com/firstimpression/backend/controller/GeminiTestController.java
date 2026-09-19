@@ -1,4 +1,4 @@
-package com.firstimpression.backend.Controller;
+package com.firstimpression.backend.controller;
 
 import com.firstimpression.backend.Services.ai.GeminiTestService;
 import org.springframework.http.ResponseEntity;

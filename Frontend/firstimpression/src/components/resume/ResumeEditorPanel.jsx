@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../../api/axios';
+import api from '../../api/axios';
 import {
   User,
   FileText,
@@ -313,13 +313,13 @@ export default function ResumeEditorPanel({
   };
 
   return (
-    <div className="w-full lg:w-[440px] xl:w-[480px] bg-white border-r border-gray-200 flex flex-col h-full shadow-lg z-20 shrink-0 print-hide">
+    <div className="w-full bg-white border-r border-gray-200 flex flex-col h-full shadow-lg z-20 shrink-0 print-hide">
       {/* Panel Top Header */}
-      <div className="p-4 border-b border-gray-100 bg-white sticky top-0 z-10 flex flex-col gap-3">
+      <div className="p-3.5 sm:p-4 border-b border-gray-100 bg-white sticky top-0 z-10 flex flex-col gap-2.5 sm:gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-theme-red animate-pulse"></span>
-            <h2 className="font-bold text-gray-900 text-base">Resume Content Editor</h2>
+            <h2 className="font-bold text-gray-900 text-sm sm:text-base">Resume Content Editor</h2>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -344,10 +344,11 @@ export default function ResumeEditorPanel({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition"
+                className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition cursor-pointer"
                 title="Close Editor"
+                aria-label="Close Editor"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             )}
           </div>
@@ -364,7 +365,7 @@ export default function ResumeEditorPanel({
               value={resumeTitle}
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder="e.g. Senior Software Engineer"
-              className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 focus:bg-white focus:border-theme-red focus:ring-1 focus:ring-theme-red outline-none transition"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 focus:bg-white focus:border-theme-red focus:ring-1 focus:ring-theme-red outline-none transition"
             />
           </div>
         )}
@@ -378,7 +379,7 @@ export default function ResumeEditorPanel({
         </div>
 
         {/* Section Navigation Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-xs font-medium">
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-xs font-medium -mx-1 px-1">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -387,13 +388,13 @@ export default function ResumeEditorPanel({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg whitespace-nowrap transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all shrink-0 cursor-pointer ${
                   isActive
                     ? 'bg-theme-red/10 text-theme-red font-bold'
                     : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-3.5 h-3.5 shrink-0" />
                 <span>{tab.label}</span>
               </button>
             );
@@ -406,7 +407,7 @@ export default function ResumeEditorPanel({
         {/* TAB 1: PERSONAL INFORMATION */}
         {activeTab === 'personal' && (
           <div className="space-y-3.5">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Contact & Header Details
               </h3>
@@ -448,7 +449,7 @@ export default function ResumeEditorPanel({
                   e.target.value = '';
                 }}
                 disabled={!profileData}
-                className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[210px] truncate disabled:opacity-50"
+                className="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-full sm:max-w-[210px] truncate disabled:opacity-50"
               >
                 <option value="" disabled>Import from Profile...</option>
                 <option value="all">⚡ Import All Profile Details</option>
@@ -482,8 +483,8 @@ export default function ResumeEditorPanel({
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
                 <input
                   type="text"
@@ -499,7 +500,7 @@ export default function ResumeEditorPanel({
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Headline / Target Role</label>
                 <input
                   type="text"
@@ -537,7 +538,7 @@ export default function ResumeEditorPanel({
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Location</label>
                 <input
                   type="text"
@@ -548,7 +549,7 @@ export default function ResumeEditorPanel({
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Photo / Avatar URL</label>
                 <div className="flex gap-2 items-center">
                   <input
@@ -595,7 +596,7 @@ export default function ResumeEditorPanel({
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Portfolio / Website</label>
                 <input
                   type="text"
@@ -615,7 +616,7 @@ export default function ResumeEditorPanel({
         {/* TAB 2: PROFESSIONAL SUMMARY */}
         {activeTab === 'summary' && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Professional Bio / Summary
               </h3>
@@ -635,7 +636,7 @@ export default function ResumeEditorPanel({
                   e.target.value = '';
                 }}
                 disabled={!profileData}
-                className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[210px] truncate disabled:opacity-50"
+                className="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-full sm:max-w-[210px] truncate disabled:opacity-50"
               >
                 <option value="" disabled>Import Summary...</option>
                 {(profileData?.summary || profilePersonal.summary || profilePersonal.about) && (
@@ -660,11 +661,11 @@ export default function ResumeEditorPanel({
         {/* TAB 3: WORK EXPERIENCE */}
         {activeTab === 'experience' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Experience History ({experience.length})
               </h3>
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-start">
                 <select
                   defaultValue=""
                   onChange={(e) => {
@@ -707,7 +708,7 @@ export default function ResumeEditorPanel({
                     e.target.value = '';
                   }}
                   disabled={profileExperiences.length === 0}
-                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                  className="flex-1 sm:flex-none px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-full sm:max-w-[200px] truncate disabled:opacity-50"
                 >
                   <option value="" disabled>
                     {profileExperiences.length > 0 ? `+ Profile Experience (${profileExperiences.length})...` : 'No profile experience'}
@@ -728,7 +729,7 @@ export default function ResumeEditorPanel({
                 <button
                   type="button"
                   onClick={handleAddExperience}
-                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add</span>
@@ -742,7 +743,7 @@ export default function ResumeEditorPanel({
                 className="p-3.5 bg-gray-50 border border-gray-200 rounded-2xl space-y-3 relative group"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Role / Title</label>
                       <input
@@ -768,14 +769,14 @@ export default function ResumeEditorPanel({
                   <button
                     type="button"
                     onClick={() => handleRemoveExperience(idx)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition"
+                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition shrink-0"
                     title="Delete Position"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Start Date</label>
                     <input
@@ -862,11 +863,11 @@ export default function ResumeEditorPanel({
         {/* TAB 4: EDUCATION */}
         {activeTab === 'education' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Education ({education.length})
               </h3>
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-start">
                 <select
                   defaultValue=""
                   onChange={(e) => {
@@ -903,7 +904,7 @@ export default function ResumeEditorPanel({
                     e.target.value = '';
                   }}
                   disabled={profileEducations.length === 0}
-                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                  className="flex-1 sm:flex-none px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-full sm:max-w-[200px] truncate disabled:opacity-50"
                 >
                   <option value="" disabled>
                     {profileEducations.length > 0 ? `+ Profile Education (${profileEducations.length})...` : 'No profile education'}
@@ -925,7 +926,7 @@ export default function ResumeEditorPanel({
                 <button
                   type="button"
                   onClick={handleAddEducation}
-                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add</span>
@@ -939,7 +940,7 @@ export default function ResumeEditorPanel({
                 className="p-3.5 bg-gray-50 border border-gray-200 rounded-2xl space-y-3 relative group"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Degree / Certification</label>
                       <input
@@ -965,14 +966,14 @@ export default function ResumeEditorPanel({
                   <button
                     type="button"
                     onClick={() => handleRemoveEducation(idx)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition"
+                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition shrink-0"
                     title="Delete Education"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Start Date</label>
                     <input
@@ -1012,7 +1013,7 @@ export default function ResumeEditorPanel({
         {/* TAB 5: SKILLS */}
         {activeTab === 'skills' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Skills & Technologies
               </h3>
@@ -1055,7 +1056,7 @@ export default function ResumeEditorPanel({
                   e.target.value = '';
                 }}
                 disabled={profileSkills.length === 0}
-                className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                className="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-full sm:max-w-[210px] truncate disabled:opacity-50"
               >
                 <option value="" disabled>
                   {profileSkills.length > 0 ? `+ Profile Skills (${profileSkills.length})...` : 'No profile skills'}
@@ -1154,11 +1155,11 @@ export default function ResumeEditorPanel({
         {/* TAB 6: PROJECTS */}
         {activeTab === 'projects' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Featured Projects ({projects.length})
               </h3>
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-start">
                 <select
                   defaultValue=""
                   onChange={(e) => {
@@ -1191,7 +1192,7 @@ export default function ResumeEditorPanel({
                     e.target.value = '';
                   }}
                   disabled={profileProjects.length === 0}
-                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                  className="flex-1 sm:flex-none px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-full sm:max-w-[200px] truncate disabled:opacity-50"
                 >
                   <option value="" disabled>
                     {profileProjects.length > 0 ? `+ Profile Projects (${profileProjects.length})...` : 'No profile projects'}
@@ -1212,7 +1213,7 @@ export default function ResumeEditorPanel({
                 <button
                   type="button"
                   onClick={handleAddProject}
-                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add</span>
@@ -1299,11 +1300,11 @@ export default function ResumeEditorPanel({
         {/* TAB 7: CERTIFICATIONS */}
         {activeTab === 'certifications' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Certifications ({certifications.length})
               </h3>
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-start">
                 <select
                   defaultValue=""
                   onChange={(e) => {
@@ -1334,7 +1335,7 @@ export default function ResumeEditorPanel({
                     e.target.value = '';
                   }}
                   disabled={profileCertifications.length === 0}
-                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                  className="flex-1 sm:flex-none px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-full sm:max-w-[200px] truncate disabled:opacity-50"
                 >
                   <option value="" disabled>
                     {profileCertifications.length > 0 ? `+ Profile Certs (${profileCertifications.length})...` : 'No profile certs'}
@@ -1355,7 +1356,7 @@ export default function ResumeEditorPanel({
                 <button
                   type="button"
                   onClick={handleAddCert}
-                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add</span>
@@ -1380,7 +1381,7 @@ export default function ResumeEditorPanel({
                         placeholder="e.g. AWS Certified Solutions Architect"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Issuer</label>
                         <input
@@ -1407,7 +1408,7 @@ export default function ResumeEditorPanel({
                   <button
                     type="button"
                     onClick={() => handleRemoveCert(idx)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition"
+                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition shrink-0"
                     title="Delete Certification"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1421,11 +1422,11 @@ export default function ResumeEditorPanel({
         {/* TAB 8: LANGUAGES */}
         {activeTab === 'languages' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Languages ({languages.length})
               </h3>
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-start">
                 <select
                   defaultValue=""
                   onChange={(e) => {
@@ -1450,7 +1451,7 @@ export default function ResumeEditorPanel({
                     e.target.value = '';
                   }}
                   disabled={profileLanguages.length === 0}
-                  className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-[180px] truncate disabled:opacity-50"
+                  className="flex-1 sm:flex-none px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none hover:border-theme-red focus:border-theme-red transition cursor-pointer max-w-full sm:max-w-[200px] truncate disabled:opacity-50"
                 >
                   <option value="" disabled>
                     {profileLanguages.length > 0 ? `+ Profile Languages (${profileLanguages.length})...` : 'No profile languages'}
@@ -1472,7 +1473,7 @@ export default function ResumeEditorPanel({
                 <button
                   type="button"
                   onClick={handleAddLang}
-                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg transition"
+                  className="flex items-center gap-1 text-xs font-bold text-theme-red hover:text-theme-red/80 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add</span>
@@ -1485,7 +1486,7 @@ export default function ResumeEditorPanel({
                 key={idx}
                 className="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between gap-2"
               >
-                <div className="flex-1 grid grid-cols-2 gap-2">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Language</label>
                     <input
@@ -1515,7 +1516,7 @@ export default function ResumeEditorPanel({
                 <button
                   type="button"
                   onClick={() => handleRemoveLang(idx)}
-                  className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition"
+                  className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition shrink-0"
                   title="Delete Language"
                 >
                   <Trash2 className="w-4 h-4" />

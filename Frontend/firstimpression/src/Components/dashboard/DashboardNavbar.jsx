@@ -16,10 +16,16 @@ const DashboardNavbar = ({ activeTab = 'My Resumes', setActiveTab }) => {
   const location = useLocation();
 
   const handleTabClick = (tab) => {
-    if (location.pathname !== routes.DASHBOARD) {
-      navigate(routes.DASHBOARD, { state: { activeTab: tab } });
+    if (tab === 'Templates') {
+      navigate(routes.TEMPLATES);
+    } else if (tab === 'My Resumes') {
+      navigate(routes.DASHBOARD);
     } else {
-      if (setActiveTab) setActiveTab(tab);
+      if (location.pathname !== routes.DASHBOARD) {
+        navigate(routes.DASHBOARD, { state: { activeTab: tab } });
+      } else {
+        if (setActiveTab) setActiveTab(tab);
+      }
     }
   };
 
@@ -38,7 +44,7 @@ const DashboardNavbar = ({ activeTab = 'My Resumes', setActiveTab }) => {
           {/* Left Side: Logo & Tabs */}
           <div className="flex items-center gap-6 lg:gap-10">
             <div className="flex items-center gap-3 md:gap-4">
-              {location.pathname !== routes.DASHBOARD && (
+              {location.pathname !== routes.DASHBOARD && location.pathname !== routes.TEMPLATES && (
                 <button 
                   onClick={() => navigate(routes.DASHBOARD)}
                   className="p-1.5 md:p-2 bg-[var(--bg-surface-hover)] rounded-xl border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--theme-red-start)] hover:border-[var(--theme-red-start)]/30 hover:bg-[var(--theme-red-start)]/10 transition-all shadow-sm flex items-center justify-center shrink-0"
@@ -86,16 +92,6 @@ const DashboardNavbar = ({ activeTab = 'My Resumes', setActiveTab }) => {
 
           {/* Right Side: Icons & Profile */}
           <div className="flex items-center gap-3 sm:gap-4">
-             {/* Simple Search */}
-             <button className="p-2 text-[var(--text-tertiary)] hover:text-theme-red transition-colors rounded-full hover:bg-[var(--bg-surface-hover)]">
-               <Search className="w-5 h-5" />
-             </button>
-
-             <button className="relative p-2 text-[var(--text-tertiary)] hover:text-theme-red transition-colors rounded-full hover:bg-[var(--bg-surface-hover)]">
-               <Bell className="w-5 h-5" />
-               <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-theme-red rounded-full"></span>
-             </button>
-
             <div className="hidden sm:block w-px h-6 bg-gray-200 mx-1"></div>
 
             {/* Clean User Profile Trigger */}
@@ -111,7 +107,7 @@ const DashboardNavbar = ({ activeTab = 'My Resumes', setActiveTab }) => {
                   {user?.profileImageUrl ? (
                     <img src={user.profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
                   ) : user?.name ? (
-                    user.name.charAt(0).toUpperCase()
+                    user.name.charAt(0).toUpperCase() 
                   ) : (
                     'U'
                   )}

@@ -1,11 +1,13 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "../pages/HomePage";
-import ProtectedRoute from "../contexts/ProtectedRoutes";
+import ProtectedRoute from "../protectedPath/ProtectedRoutes";
 import DashboardPage from "../pages/DashboardPage";
 import ProfilePage from "../pages/ProfilePage";
 import AccountPage from "../pages/AccountPage";
 import AuthPage from "../pages/AuthPage";
-import TemplatesPage from "../pages/TemplatesPage";
+import ResumeStudioPage from "../pages/ResumeStudioPage";
+import FeaturesPage from "../pages/FeaturesPage";
+import AboutUsPage from "../pages/AboutUsPage";
 import { useSelector } from "react-redux";
 import { routes } from "./routes";
 
@@ -15,16 +17,7 @@ function MainRoutes() {
 
   return (
     <Routes>
-      <Route
-        path={routes.HOME}
-        element={
-          isAuthenticated ? (
-            <Navigate to={routes.DASHBOARD} replace />
-          ) : (
-            <HomePage />
-          )
-        }
-      />
+      <Route path={routes.HOME} element={<HomePage />} />
       <Route
         path={routes.DASHBOARD}
         element={
@@ -56,10 +49,17 @@ function MainRoutes() {
       <Route path={routes.OTP} element={<AuthPage />} />
       <Route path={routes.CHANGE_PASSWORD} element={<AuthPage />} />
 
-      <Route 
+      <Route
         path={routes.TEMPLATES}
-        element={<TemplatesPage />}
+        element={<DashboardPage initialTab="Templates" />}
       />
+
+      <Route path={routes.FEATURES} element={<FeaturesPage />} />
+
+      <Route path={routes.ABOUT_US} element={<AboutUsPage />} />
+
+      <Route path={routes.RESUME} element={<ResumeStudioPage />} />
+      
     </Routes>
   );
 }

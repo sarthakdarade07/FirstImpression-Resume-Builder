@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firstimpression.backend.Repository.JobDescriptionRepository;
 import com.firstimpression.backend.Repository.ResumeRepository;
 import com.firstimpression.backend.Services.FileUploadService;
-import com.firstimpression.backend.dto.JdUpdateResponse;
 import com.firstimpression.backend.model.JobDescription;
 import com.firstimpression.backend.model.Resume;
 import com.firstimpression.backend.model.Users;
@@ -130,47 +129,7 @@ public class JdService {
         return jobDescriptionRepository.findFirstByUserIdAndResumeIdOrderByCreatedAtDesc(user.getId(), resumeId);
     }
 
-    public JdUpdateResponse updateJd(Long jdId, String userQuery, Users user) {
-        if (userQuery == null || userQuery.trim().isEmpty()) {
-            throw new IllegalArgumentException("User query cannot be empty.");
-        }
-
-        JobDescription jd = jobDescriptionRepository.findByIdAndUserId(jdId, user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Job description not found or unauthorized: ID " + jdId));
-
-        String prompt = buildUpdatePrompt(jd.getJdJson(), userQuery.trim());
-        String jsonResponse = geminiClientService.generateContent(prompt);
-
-        Object updatedNode;
-        try {
-            updatedNode = objectMapper.readTree(jsonResponse);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Gemini returned invalid JSON for updated Job Description");
-        }
-
-        boolean changed = !jsonResponse.trim().equals(jd.getJdJson() != null ? jd.getJdJson().trim() : "");
-
-        if (changed) {
-            jd.setJdJson(jsonResponse);
-            jobDescriptionRepository.save(jd);
-            return JdUpdateResponse.builder()
-                    .changed(true)
-                    .message("Job description updated successfully.")
-                    .jd(updatedNode)
-                    .build();
-        } else {
-            Object currentNode = null;
-            try {
-                currentNode = objectMapper.readTree(jd.getJdJson());
-            } catch (Exception ignored) {}
-            return JdUpdateResponse.builder()
-                    .changed(false)
-                    .message("No changes were made to the job description.")
-                    .jd(currentNode != null ? currentNode : updatedNode)
-                    .build();
-        }
-    }
-
+   
     private String extractTextFromPdf(InputStream inputStream) throws IOException {
         try (PDDocument document = PDDocument.load(inputStream)) {
             return new PDFTextStripper().getText(document);
@@ -219,7 +178,7 @@ BASELINE SCHEMA (extend as needed):
   "jobTitle": "string or null",
   "company": "string or null",
   "seniority": "string or null",
-  "location": "string or null",
+  "location": "string or null", 
   "employmentType": "string or null",
   "technicalSkills": ["string"],
   "toolsAndPlatforms": ["string"],
@@ -238,36 +197,4 @@ Return the complete, extended JSON. Nothing else.
         return template.replace("%s", jdText);
     }
 
-    private String buildUpdatePrompt(String currentJdJson, String userQuery) {
-        String template = """
-You are an AI Job Description Editor.
-
-You are given the current structured Job Description and a user instruction.
-
-CURRENT JOB DESCRIPTION JSON:
-{CURRENT_JSON}
-
-USER INSTRUCTION:
-{USER_QUERY}
-
-Your task is to determine what changes, if any, should be made to the Job Description.
-
-Rules:
-1. Modify only what the user's instruction requires.
-2. Preserve all unrelated existing information, keys, and values.
-3. Do not invent information.
-4. Do not remove information unless the user explicitly asks for it.
-5. If the user asks to add a skill, add it to the appropriate skill field.
-6. If the user asks to remove a skill, remove it from the appropriate field.
-7. If the user asks to modify a value, modify only that value.
-8. Avoid duplicate skills or keywords.
-9. If the user's request does not require a modification (such as questions, summaries, or general inquiries), return the existing JSON unchanged.
-10. Return the complete updated JSON.
-11. Return ONLY valid JSON.
-12. Do not return Markdown.
-13. Do not wrap JSON inside ```json.
-""";
-        return template.replace("{CURRENT_JSON}", currentJdJson != null ? currentJdJson : "{}")
-                       .replace("{USER_QUERY}", userQuery);
-    }
 }

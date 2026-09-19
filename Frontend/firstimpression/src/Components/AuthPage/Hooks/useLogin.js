@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { loginUser } from "../../../redux/thunks/auththunk";
 import { routes } from "../../../routes/routes";
 
 const useLogin = ({ onNavigateToForgotPassword }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -58,9 +59,15 @@ const useLogin = ({ onNavigateToForgotPassword }) => {
         }),
       ).unwrap();
 
+       const redirectUrl = searchParams.get("redirect");
+        const destination = redirectUrl
+          ? decodeURIComponent(redirectUrl)
+          : routes.DASHBOARD;
+
       setMsg("Login successful!");
       setShowToast(true);
-      navigate(routes.DASHBOARD);
+     navigate(destination, { replace: true });
+
     } catch (errorMessage) {
       setError(errorMessage || "Invalid credentials");
     } finally {

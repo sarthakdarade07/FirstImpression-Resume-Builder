@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class JdUpdateRequest {
+public class ResumeUpdateRequest {
     private String query;
-}
+} 

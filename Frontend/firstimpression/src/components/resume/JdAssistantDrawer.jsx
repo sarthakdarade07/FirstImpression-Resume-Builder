@@ -220,7 +220,7 @@ export default function JdAssistantDrawer({
     features: fetchedFeatures,
     isFetchingJd,
     uploadJd,
-    updateJd,
+    updateResume,
     tailorResume,
     isUploading,
     isQuerying,
@@ -311,24 +311,19 @@ export default function JdAssistantDrawer({
 
     const cleanQuery = query.trim();
 
-    if (!cleanQuery || !currentJd?.id) {
+
+    if (!cleanQuery || !resumeId) {
       return;
     }
 
     // Clear input immediately
     setQuery("");
-
     try {
-      const result = await updateJd(currentJd.id, cleanQuery);
+      const result = await updateResume(resumeId, cleanQuery);
 
-      // Update current JD features
-      if (result?.jd) {
-        setFeatures(result.jd);
 
-        setCurrentJd((prev) => ({
-          ...prev,
-          jdJson: result.jd,
-        }));
+      if (result?.updatedResumeData && onResumeAltered) {
+        onResumeAltered(result.updatedResumeData);
       }
 
       // Frontend-only history
@@ -338,7 +333,7 @@ export default function JdAssistantDrawer({
           id: `query-${Date.now()}`,
           type: "query",
           userQuery: cleanQuery,
-          message: result?.message || "Response received",
+          message: result?.message || result?.response|| "Response received",
           changed: result?.changed,
           features: result?.jd,
           timestamp: new Date().toLocaleTimeString([], {
@@ -349,7 +344,7 @@ export default function JdAssistantDrawer({
       ]);
     } catch (error) {
       // Error state is managed by useJDAssistant
-      console.error("JD query failed:", error);
+      console.error(" query failed:", error);
     }
   };
 
@@ -369,7 +364,6 @@ export default function JdAssistantDrawer({
           id: `tailor-${Date.now()}`,
           type: "tailor",
           message: "Resume tailored to match the Job Description.",
-          reasoning: res?.reasoning,
           gapInJdAndResume: res?.gapInJdAndResume,
           requiredSkills: res?.requiredSkills,
           timestamp: new Date().toLocaleTimeString([], {
@@ -389,31 +383,11 @@ export default function JdAssistantDrawer({
 
   return (
     <>
-      {/* Floating Toggle Button */}
-      {!isOpen && (
-        <button
-          type="button"
-          onClick={onToggle}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-orange-500 via-red-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white rounded-full shadow-2xl hover:shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all text-xs font-bold border border-white/20 print-hide backdrop-blur-md cursor-pointer group"
-          title="Open Job Description Assistant">
-          <div className="relative flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white group-hover:rotate-12 transition-transform duration-300" />
-
-            <span className="absolute -top-1 -right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-            </span>
-          </div>
-
-          <span className="tracking-wide font-semibold">Resume Assistant</span>
-        </button>
-      )}
 
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 lg:bg-transparent lg:pointer-events-none transition-opacity duration-300 print-hide"
+          className="fixed inset-0  z-40 lg:bg-transparent lg:pointer-events-none transition-opacity duration-300 print-hide"
           onClick={onToggle}
           aria-hidden="true"
         />
@@ -641,7 +615,7 @@ export default function JdAssistantDrawer({
             </div>
           )}
 
-          {/* Tailor Result Overview (Reasoning, Gaps, Required Skills) */}
+          {/* Tailor Result Overview (Gaps, Required Skills) */}
           {tailorResult && (
             <div className="bg-white border border-orange-200 rounded-2xl p-3.5 space-y-3 shadow-sm animate-in fade-in">
               <div className="flex items-center gap-1.5 border-b border-gray-100 pb-2">
@@ -649,17 +623,7 @@ export default function JdAssistantDrawer({
                 <h4 className="text-xs font-bold text-gray-900">Resume Tailored Successfully</h4>
               </div>
 
-              {/* Strategic Reasoning */}
-              {tailorResult.reasoning && (
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">
-                    Strategic AI Reasoning
-                  </span>
-                  <p className="text-xs text-gray-700 bg-gray-50 p-2.5 rounded-xl border border-gray-100 leading-relaxed whitespace-pre-wrap">
-                    {tailorResult.reasoning}
-                  </p>
-                </div>
-              )}
+            
 
               {/* Gap in JD and Resume */}
               {tailorResult.gapInJdAndResume && (
@@ -781,29 +745,7 @@ export default function JdAssistantDrawer({
             </div>
           )}
 
-          {/* Quick Suggestions */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none text-[10px]">
-            <button
-              type="button"
-              onClick={() => setQuery("What skills are required?")}
-              className="px-2 py-0.5 bg-white border border-gray-200 hover:border-orange-300 rounded-full text-gray-600 hover:text-gray-900 transition whitespace-nowrap">
-              Required skills?
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setQuery("Add Docker to technical skills")}
-              className="px-2 py-0.5 bg-white border border-gray-200 hover:border-orange-300 rounded-full text-gray-600 hover:text-gray-900 transition whitespace-nowrap">
-              + Add Docker
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setQuery("Summarize responsibilities")}
-              className="px-2 py-0.5 bg-white border border-gray-200 hover:border-orange-300 rounded-full text-gray-600 hover:text-gray-900 transition whitespace-nowrap">
-              Summarize
-            </button>
-          </div>
+    
 
           {/* Query Form */}
           <form
@@ -813,18 +755,15 @@ export default function JdAssistantDrawer({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              disabled={!currentJd || isQuerying}
               placeholder={
-                currentJd
-                  ? "Ask query or instruction (e.g. 'Add Docker')..."
-                  : "Upload JD first to query..."
+                "Write query to update resume"
               }
               className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs text-gray-800 outline-none focus:border-orange-500 disabled:bg-gray-100 transition"
             />
 
             <button
               type="submit"
-              disabled={!currentJd || !query.trim() || isQuerying}
+              disabled={!query.trim() || isQuerying}
               className="p-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 text-white rounded-xl shadow disabled:opacity-40 transition cursor-pointer"
               title="Send query">
               {isQuerying ? (

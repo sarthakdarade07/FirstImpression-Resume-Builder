@@ -2,13 +2,17 @@
 
 import { createSlice } from "@reduxjs/toolkit";
 import { loginUser } from "../thunks/auththunk";
+import { getValidToken } from "../../util/auth";
 
 let storedUser = null;
-try {
-  const rawUser = localStorage.getItem("user");
-  if (rawUser) storedUser = JSON.parse(rawUser);
-} catch (e) {
-  storedUser = null;
+const token = getValidToken();
+if (token) {
+  try {
+    const rawUser = localStorage.getItem("user");
+    if (rawUser) storedUser = JSON.parse(rawUser);
+  } catch (e) { 
+    storedUser = null;
+  }
 }
 
 const initialState = {

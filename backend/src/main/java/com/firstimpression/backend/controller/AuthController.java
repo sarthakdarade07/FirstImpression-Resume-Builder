@@ -1,4 +1,4 @@
-package com.firstimpression.backend.Controller;
+package com.firstimpression.backend.controller;
 
 import java.io.IOException;
 import java.util.Map;

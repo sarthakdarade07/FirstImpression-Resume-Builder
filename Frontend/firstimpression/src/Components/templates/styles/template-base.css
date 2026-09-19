@@ -264,3 +264,53 @@
   font-size: 12px;
   margin-bottom: 4px;
 }
+
+/* ==========================================================================
+   Mobile Responsive Preview (Full Screen Width)
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+  .resume-screen-preview {
+    padding: 0 !important;
+    background-color: #ffffff !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    overflow-x: hidden !important;
+    margin: 5% 5% 5% 5%;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  }
+
+  .resume-screen-zoom-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+
+  .resume-viewport {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .resume-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: auto !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 20px 16px 100px 16px !important;
+  }
+
+  .resume-columns {
+    flex-direction: column !important;
+  }
+
+  .resume-column {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

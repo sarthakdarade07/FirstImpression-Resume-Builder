@@ -19,7 +19,6 @@ public class ResumeTailorResponse {
 	private String templateSlug;
 	private Object alteredResumeData;
 	private String alteredResumeDataJson;
-	private String reasoning;
 	private List<String> gapInJdAndResume;
 	private List<String> skillsNeed;
 	private List<Object> requiredSkills;

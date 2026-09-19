@@ -47,7 +47,8 @@ public class SecurityConfig {
 				   "/api/auth/verify-otp",
 				   "/api/auth/reset-password",
 				   "/actuator/**",
-				   "/api/templates/**").permitAll()
+				   "/api/templates/**",
+				   "/api/jobs/**").permitAll()
 				   .requestMatchers(org.springframework.http.HttpMethod.GET ).permitAll()
 				   .anyRequest().authenticated())
 		   .sessionManagement(session -> session.sessionCreationPolicy((SessionCreationPolicy.STATELESS)))

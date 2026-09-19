@@ -138,7 +138,7 @@ export const resumeApi = {
    * @param {string} [customTitle]
    * @param {Object} [customResumeData] - Optional pre-existing or customized resume data to seed with
    */
-  async createResumeFromTemplate(template, customTitle, customResumeData = null) {
+  async createResumeFromTemplate(template, customTitle, customResumeData = null, user = null) {
     let resumeData = null;
     const token = localStorage.getItem('jwtToken');
 
@@ -146,12 +146,14 @@ export const resumeApi = {
       resumeData = JSON.parse(JSON.stringify(customResumeData));
     } else {
       let profileData = null;
-      let authUser = null;
+      let authUser = user;
 
-      try {
-        const rawUser = localStorage.getItem('user');
-        if (rawUser) authUser = JSON.parse(rawUser);
-      } catch {}
+      if (!authUser) {
+        try {
+          const rawUser = localStorage.getItem('user');
+          if (rawUser) authUser = JSON.parse(rawUser);
+        } catch {}
+      }
 
       if (token) {
         try {
@@ -303,7 +305,7 @@ export const resumeApi = {
   /**
    * Tailor a resume to its associated Job Description via Gemini
    * @param {string} id - Resume ID
-   * @returns {Promise<Object>} Tailor response with alteredResumeData, reasoning, gapInJdAndResume, requiredSkills
+   * @returns {Promise<Object>} Tailor response with alteredResumeData,  gapInJdAndResume, requiredSkills
    */
   async tailorResumeToJd(id) {
     if (!id) {

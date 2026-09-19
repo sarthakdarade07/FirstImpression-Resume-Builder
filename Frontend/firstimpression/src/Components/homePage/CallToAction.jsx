@@ -42,7 +42,7 @@ const CallToAction = () => {
             
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
               <button 
-                onClick={() => navigate(routes.SIGNUP)}
+                onClick={() => navigate(routes.DASHBOARD)}
                 className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[var(--theme-red-start)] to-[var(--theme-red-end)] text-white rounded-full font-semibold text-lg hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2"
               >
                 Start for Free

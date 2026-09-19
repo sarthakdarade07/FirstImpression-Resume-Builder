@@ -25,6 +25,7 @@ export const loginUser = createAsyncThunk(
                     token,
                     user
                 }
+               
             
         }catch(error){
             return rejectWithValue(

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearSessionAndRedirect, getValidToken } from "../util/auth";
 
 const api = axios.create({
   baseURL:
@@ -13,9 +14,10 @@ const api = axios.create({
 
 
 api.interceptors.request.use(
-    (config)=>{
-        const token = localStorage.getItem("jwtToken");
-        
+    
+    (config)=>{ 
+     
+        const token = getValidToken();
         if(token){
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -28,13 +30,15 @@ api.interceptors.request.use(
 )
 
 api.interceptors.response.use(
-    (response)=>{
-        return response;
-    },
+  (response) => {
+    return response;
+  },
 
-    (error)=>{
-        return Promise.reject(error);
-    }
-)
+  (error) => {
+    if (error.response?.status === 401) clearSessionAndRedirect();
+ 
+    return Promise.reject(error);
+  },
+);
 
 export default api; 

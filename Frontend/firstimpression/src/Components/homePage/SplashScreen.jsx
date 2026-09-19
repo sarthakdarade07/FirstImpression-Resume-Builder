@@ -35,11 +35,12 @@ const SplashScreen = ({ onComplete }) => {
         backgroundColor: isFinished
           ? "rgba(255, 255, 255, 0)"
           : "rgba(255, 255, 255, 1)",
+        opacity: isFinished ? 0 : 1,
       }}
       style={{
         pointerEvents: isFinished ? "none" : "auto",
       }}
-      transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}>
+      transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}>
       <div
         className={`w-full h-full flex transition-all duration-1000 ${
           isFinished

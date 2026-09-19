@@ -1,4 +1,4 @@
-package com.firstimpression.backend.Controller;
+package com.firstimpression.backend.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.firstimpression.backend.dto.JdUpdateRequest;
-import com.firstimpression.backend.dto.JdUpdateResponse;
+
 import com.firstimpression.backend.model.JobDescription;
 import com.firstimpression.backend.model.Users;
 import com.firstimpression.backend.Services.ai.JdService;
@@ -63,28 +62,7 @@ public class GeminiController {
         }
     }
 
-    @PostMapping("/jd/{jdId}/update")
-    public ResponseEntity<?> updateJd(
-            @PathVariable("jdId") Long jdId,
-            @RequestBody JdUpdateRequest request,
-            Authentication authentication) {
-        Users user = getAuthenticatedUser(authentication);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required");
-        }
 
-        try {
-            String query = request != null ? request.getQuery() : null;
-            JdUpdateResponse response = jdService.updateJd(jdId, query, user);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            log.error("Error updating JD: {}", jdId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to update job description: " + e.getMessage());
-        }
-    }
 
     @GetMapping("/jd/resume/{resumeId}")
     public ResponseEntity<?> getJdByResumeId(

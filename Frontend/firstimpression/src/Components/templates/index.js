@@ -10,4 +10,4 @@ export * from './hooks/useTemplate';
 export * from './hooks/useTemplateRenderer';
 export * from './data/sampleResumeData';
 export * from './data/localTemplates';
-export { default as ResumeEditorPanel } from './components/ResumeEditorPanel';
+export { default as ResumeEditorPanel } from '../resume/ResumeEditorPanel';
