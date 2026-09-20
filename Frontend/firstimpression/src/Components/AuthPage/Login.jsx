@@ -7,7 +7,7 @@ import icon_logo from "../../assets/promotional/Firstimpression_icon_logo.webp";
 import SuccessToast from "../notifications/SuccessToast";
 import FailedToast from "../notifications/FailedToast";
 import { HashLink } from "react-router-hash-link";
-import useLogin from "./hooks/useLogin";
+import useLogin from "./Hooks/useLogin";
 import { routes } from "../../routes/routes";
 
 
@@ -123,7 +123,7 @@ const Login = ({ onNavigateToSignUp, onNavigateToForgotPassword }) => {
 
                 <div>
                   <input
-                    type="text"
+                    type="email"
                     placeholder="Email or Username"
                     value={emailOrUsername}
                     onChange={handleEmailChange}

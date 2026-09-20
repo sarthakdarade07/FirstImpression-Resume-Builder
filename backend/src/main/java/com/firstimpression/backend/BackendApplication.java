@@ -12,7 +12,7 @@ public class BackendApplication {
 		SpringApplication.run(BackendApplication.class, args);
 		
 		
-		System.out.println("Application Started...");
+		System.out.println(" from fi Application Started...");
 	}
 
 }

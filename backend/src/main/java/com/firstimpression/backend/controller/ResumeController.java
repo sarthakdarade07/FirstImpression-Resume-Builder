@@ -109,14 +109,16 @@ public class ResumeController {
 	@PostMapping("/{id}/tailor-to-jd")
 	public ResponseEntity<ResumeTailorResponse> tailorResumeToJd(
 			Authentication authentication,
-			@PathVariable String id
+			@PathVariable String id,
+			@RequestBody(required = false) ResumeUpdateRequest request
 	) {
 		Users user = getAuthenticatedUser(authentication);
 		if (user == null) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 		log.info("REST: POST /api/resumes/{}/tailor-to-jd for user: {}", id, user.getId());
-		return ResponseEntity.ok(resumeService.tailorResumeToJd(user, id));
+		String clientJson = request != null ? request.getResumeDataJson() : null;
+		return ResponseEntity.ok(resumeService.tailorResumeToJd(user, id, clientJson));
 	}
 	
 	@PostMapping("/{id}/update-resume")
@@ -131,9 +133,10 @@ public class ResumeController {
 	        }
 		
 		 String query = req.getQuery();
+		 String clientJson = req.getResumeDataJson();
 		 
-		 String response = resumeService.updateResume(user, resumeId, query);
+		 Map<String, Object> response = resumeService.updateResume(user, resumeId, query, clientJson);
 		  
-		 return ResponseEntity.ok(Map.of("response",response));
+		 return ResponseEntity.ok(response);
 	}
 }

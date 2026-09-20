@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ResumeUpdateRequest {
     private String query;
+    private String resumeDataJson;
 } 

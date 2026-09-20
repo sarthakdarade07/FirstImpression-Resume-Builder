@@ -60,7 +60,7 @@ public class GeminiClientService {
 
     private String generateWithGemini(String prompt) {
         if (geminiClient == null) {
-            throw new IllegalStateException("Gemini client is not initialized. Configure gemini.api.key or switch to ai.provider=grok with grok.api.key.");
+            throw new IllegalStateException("Gemini client is not initialized.");
         }
         try {
             com.google.genai.types.GenerateContentConfig config = com.google.genai.types.GenerateContentConfig.builder()
@@ -74,13 +74,13 @@ public class GeminiClientService {
         } catch (Exception e) {
             String safeError = sanitizeErrorMessage(e.getMessage());
             log.error("Gemini API call error: {}", safeError);
-            throw new RuntimeException("Gemini generation failed: " + safeError, e);
+            throw new RuntimeException("Gemini generation failed: " + safeError);
         }
     }
 
     private String generateWithGrok(String prompt) {
         if (grokApiKey == null || grokApiKey.isBlank()) {
-            throw new IllegalStateException("Grok API key is missing. Set grok.api.key in application.properties or GROK_API_KEY environment variable.");
+            throw new IllegalStateException("Grok API key is missing.");
         }
         try {
             Map<String, Object> body = Map.of(

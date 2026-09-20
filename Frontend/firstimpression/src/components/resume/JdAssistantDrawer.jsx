@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import {
   Sparkles,
   UploadCloud,
@@ -209,8 +210,11 @@ export default function JdAssistantDrawer({
   isOpen = false,
   onToggle,
   resumeId = null,
+  currentResumeData = null,
   onResumeAltered = null,
 }) {
+  const reduxCurrentResume = useSelector((state) => state.resume?.currentResume);
+  const activeResumePayload = currentResumeData || reduxCurrentResume;
   // ============================================================
   // BUSINESS / API LOGIC
   // ============================================================
@@ -319,9 +323,9 @@ export default function JdAssistantDrawer({
     // Clear input immediately
     setQuery("");
     try {
-      const result = await updateResume(resumeId, cleanQuery);
+      const result = await updateResume(resumeId, cleanQuery, activeResumePayload);
 
-
+          console.log("response of query:", result)
       if (result?.updatedResumeData && onResumeAltered) {
         onResumeAltered(result.updatedResumeData);
       }
@@ -354,7 +358,7 @@ export default function JdAssistantDrawer({
 
   const handleTailorResume = async () => {
     try {
-      const res = await tailorResume(resumeId);
+      const res = await tailorResume(resumeId, activeResumePayload);
       if (res?.alteredResumeData && onResumeAltered) {
         onResumeAltered(res.alteredResumeData);
       }

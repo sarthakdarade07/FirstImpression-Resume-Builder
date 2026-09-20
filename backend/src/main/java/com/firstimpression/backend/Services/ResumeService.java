@@ -38,14 +38,32 @@ public class ResumeService {
 	private final ObjectMapper objectMapper;
 
 	// Fields from JD JSON that actually matter for tailoring.
-	// Drops: company, additionalInfo, recruiter policy, EEO statement, location,
-	// employmentType.
+	// Drops: company, additionalInfo, recruiter policy, EEO statement, location, employmentType.
 	private static final String[] JD_KEEP_FIELDS = { "jobTitle", "seniority", "technicalSkills", "toolsAndPlatforms",
 			"softSkills", "domainKnowledge", "responsibilities", "requiredQualifications", "preferredQualifications",
 			"keywords" };
 
-	// Fields from master profile that matter. Drops photoUrl/avatar/auth/etc.
-	private static final String[] PROFILE_KEEP_FIELDS = { "workExperiences", "projects", "skills", "certifications" };
+	// ── Centralized field config ─────────────────────────────────────────────────
+	// What fields (+ id) are sent to Gemini from each section of the RESUME JSON.
+	// Resume now uses profile-schema keys (workExperiences, title, etc.).
+	private static final Map<String, String[]> RESUME_SECTION_FIELDS = Map.of(
+		"workExperiences", new String[]{"id", "companyName", "jobTitle", "description", "technologies"},
+		"projects",        new String[]{"id", "title", "description", "technologies"},
+		"skills",          new String[]{"id", "title", "level"},
+		"certifications",  new String[]{"id", "title", "issuedBy"}
+	);
+
+	// What fields (+ id) are sent to Gemini from each section of the PROFILE JSON.
+	// ProfileResponse uses the same key names as the resume after schema alignment.
+	private static final Map<String, String[]> PROFILE_SECTION_FIELDS = Map.of(
+		"workExperiences", new String[]{"id", "companyName", "jobTitle", "description", "technologies"},
+		"projects",        new String[]{"id", "title", "description", "technologies"},
+		"skills",          new String[]{"id", "title", "level"},
+		"certifications",  new String[]{"id", "title", "issuedBy"}
+	);
+
+	// Sections AI is allowed to alter (used in both tailor and update flows).
+	private static final String[] ALTERABLE_SECTIONS = {"workExperiences", "projects", "skills", "certifications"};
 
 	@Transactional(readOnly = true)
 	public List<ResumeResponse> getUserResumes(Users user) {
@@ -111,6 +129,10 @@ public class ResumeService {
 	}
 
 	public ResumeTailorResponse tailorResumeToJd(Users user, String resumeId) {
+		return tailorResumeToJd(user, resumeId, null);
+	}
+
+	public ResumeTailorResponse tailorResumeToJd(Users user, String resumeId, String clientResumeDataJson) {
 		log.info("Tailoring resume: {} to JD for user: {}", resumeId, user.getId());
 
 		// 1. Fetch Resume
@@ -135,7 +157,10 @@ public class ResumeService {
 
 		// 4. Build input representations (only 4 sections with master profile fields)
 		String profileJson = buildTrimmedProfileJson(profile);
-		String currentResumeJson = buildTrimmedResumeJson(resume.getResumeDataJson());
+		String targetResumeJson = (clientResumeDataJson != null && !clientResumeDataJson.isBlank())
+				? clientResumeDataJson
+				: resume.getResumeDataJson();
+		String currentResumeJson = buildTrimmedResumeJson(targetResumeJson);
 
 		String rawJdJson = (jd.getJdJson() != null && !jd.getJdJson().isBlank()) ? jd.getJdJson()
 				: (jd.getRawTxt() != null ? jd.getRawTxt() : "{}");
@@ -176,129 +201,8 @@ public class ResumeService {
 			}
 		}
 
-		// 8. Fetch original resume and alter ONLY the 4 sections
-		String originalResumeJson = resume.getResumeDataJson() != null && !resume.getResumeDataJson().isBlank()
-				? resume.getResumeDataJson()
-				: "{}";
-		ObjectNode finalResumeNode;
-		try {
-			JsonNode parsedOriginal = objectMapper.readTree(originalResumeJson);
-			finalResumeNode = parsedOriginal.isObject() ? ((ObjectNode) parsedOriginal).deepCopy()
-					: objectMapper.createObjectNode();
-		} catch (Exception e) {
-			finalResumeNode = objectMapper.createObjectNode();
-		}
-		
-
-		// Alter Section 0: Summary
-		if (alteredNode.hasNonNull("summary")) {
-		    String tailoredSummary = alteredNode.get("summary").asText();
-		    finalResumeNode.put("summary", tailoredSummary);
-		    // Keep nested personal/personalInfo objects synchronized
-		    if (finalResumeNode.has("personal") && finalResumeNode.get("personal").isObject()) {
-		        ((ObjectNode) finalResumeNode.get("personal")).put("summary", tailoredSummary);
-		    }
-		    if (finalResumeNode.has("personalInfo") && finalResumeNode.get("personalInfo").isObject()) {
-		        ((ObjectNode) finalResumeNode.get("personalInfo")).put("summary", tailoredSummary);
-		    }
-		}
-
-		// Alter Section 1: Work Experience
-		JsonNode newExperiences = alteredNode.has("workExperiences") ? alteredNode.get("workExperiences")
-				: alteredNode.get("experience");
-		if (newExperiences != null && newExperiences.isArray()) {
-			ArrayNode formattedExperiences = objectMapper.createArrayNode();
-			for (JsonNode expItem : newExperiences) {
-				if (expItem.isObject()) {
-					ObjectNode expObj = ((ObjectNode) expItem).deepCopy();
-					if (expObj.hasNonNull("companyName") && !expObj.hasNonNull("company")) {
-						expObj.set("company", expObj.get("companyName"));
-					} else if (expObj.hasNonNull("company") && !expObj.hasNonNull("companyName")) {
-						expObj.set("companyName", expObj.get("company"));
-					}
-					if (expObj.hasNonNull("jobTitle") && !expObj.hasNonNull("role")) {
-						expObj.set("role", expObj.get("jobTitle"));
-					} else if (expObj.hasNonNull("role") && !expObj.hasNonNull("jobTitle")) {
-						expObj.set("jobTitle", expObj.get("role"));
-					}
-					formattedExperiences.add(expObj);
-				} else {
-					formattedExperiences.add(expItem);
-				}
-			}
-			if (finalResumeNode.has("experience")) {
-				finalResumeNode.set("experience", formattedExperiences);
-			} else {
-				finalResumeNode.set("workExperiences", formattedExperiences);
-			}
-		}
-
-		// Alter Section 2: Projects
-		if (alteredNode.has("projects") && alteredNode.get("projects").isArray()) {
-			ArrayNode formattedProjects = objectMapper.createArrayNode();
-			for (JsonNode projItem : alteredNode.get("projects")) {
-				if (projItem.isObject()) {
-					ObjectNode projObj = ((ObjectNode) projItem).deepCopy();
-					if (projObj.hasNonNull("title") && !projObj.hasNonNull("name")) {
-						projObj.set("name", projObj.get("title"));
-					} else if (projObj.hasNonNull("name") && !projObj.hasNonNull("title")) {
-						projObj.set("title", projObj.get("name"));
-					}
-					formattedProjects.add(projObj);
-				} else {
-					formattedProjects.add(projItem);
-				}
-			}
-			finalResumeNode.set("projects", formattedProjects);
-		}
-
-		// Alter Section 3: Skills
-		if (alteredNode.has("skills") && alteredNode.get("skills").isArray()) {
-			ArrayNode formattedSkills = objectMapper.createArrayNode();
-			for (JsonNode skItem : alteredNode.get("skills")) {
-				if (skItem.isObject()) {
-					ObjectNode skObj = ((ObjectNode) skItem).deepCopy();
-					String title = skObj.hasNonNull("title") ? skObj.get("title").asText()
-							: (skObj.hasNonNull("name") ? skObj.get("name").asText() : "");
-					if (!title.isBlank()) {
-						skObj.put("title", title);
-						skObj.put("name", title);
-					}
-					formattedSkills.add(skObj);
-				} else {
-					formattedSkills.add(skItem);
-				}
-			}
-			finalResumeNode.set("skills", formattedSkills);
-		}
-
-		// Alter Section 4: Certifications
-		if (alteredNode.has("certifications") && alteredNode.get("certifications").isArray()) {
-			ArrayNode formattedCerts = objectMapper.createArrayNode();
-			for (JsonNode certItem : alteredNode.get("certifications")) {
-				if (certItem.isObject()) {
-					ObjectNode certObj = ((ObjectNode) certItem).deepCopy();
-					if (certObj.hasNonNull("title") && !certObj.hasNonNull("name")) {
-						certObj.set("name", certObj.get("title"));
-					} else if (certObj.hasNonNull("name") && !certObj.hasNonNull("title")) {
-						certObj.set("title", certObj.get("name"));
-					}
-					if (certObj.hasNonNull("issuedBy") && !certObj.hasNonNull("issuer")) {
-						certObj.set("issuer", certObj.get("issuedBy"));
-					} else if (certObj.hasNonNull("issuer") && !certObj.hasNonNull("issuedBy")) {
-						certObj.set("issuedBy", certObj.get("issuer"));
-					}
-					formattedCerts.add(certObj);
-				} else {
-					formattedCerts.add(certItem);
-				}
-			}
-			finalResumeNode.set("certifications", formattedCerts);
-		}
-
-		String alteredDataJson = finalResumeNode.toString();
-		resume.setResumeDataJson(alteredDataJson);
-		Resume savedResume = resumeRepository.save(resume);
+		// 8. Return ONLY the altered sections payload from Gemini (no merging with old resume)
+		String alteredDataJson = alteredNode.toString();
 
 		// 9. Build and return response
 		Object alteredDataObject = null;
@@ -308,28 +212,34 @@ public class ResumeService {
 			alteredDataObject = alteredDataJson;
 		}
 
-		return ResumeTailorResponse.builder().resumeId(savedResume.getId()).title(savedResume.getTitle())
-				.templateSlug(savedResume.getTemplateSlug()).alteredResumeData(alteredDataObject)
+		return ResumeTailorResponse.builder().resumeId(resume.getId()).title(resume.getTitle())
+				.templateSlug(resume.getTemplateSlug()).alteredResumeData(alteredDataObject)
 				.alteredResumeDataJson(alteredDataJson).gapInJdAndResume(gapInJdAndResume)
 				.skillsNeed(skillsNeed).requiredSkills(new ArrayList<>(skillsNeed))
-				.updatedAt(savedResume.getUpdatedAt()).build();
+				.updatedAt(resume.getUpdatedAt()).build();
 	}
 
-	public String updateResume(Users user, String resumeId, String query) {
+	public Map<String, Object> updateResume(Users user, String resumeId, String query) {
+		return updateResume(user, resumeId, query, null);
+	}
+
+	public Map<String, Object> updateResume(Users user, String resumeId, String query, String clientResumeDataJson) {
 
 		log.info("Inside ResumeService updating resume: {}, query: {}", resumeId, query);
 
 		// 1. Validate query
 		if (query == null || query.isBlank()) {
-			return "Query is empty";
+			return Map.of("message", "Query is empty");
 		}
 
 		// 2. Fetch resume
 		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
 				.orElseThrow(() -> new RuntimeException("Resume not found with ID: " + resumeId));
 
-		// 3. Get original complete resume JSON
-		String originalResumeJson = resume.getResumeDataJson();
+		// 3. Get original complete resume JSON (prefer live unsaved client JSON from Redux)
+		String originalResumeJson = (clientResumeDataJson != null && !clientResumeDataJson.isBlank())
+				? clientResumeDataJson
+				: resume.getResumeDataJson();
 
 		// 4. Create trimmed JSON for AI
 		String currentResumeJson = buildTrimmedResumeJson(originalResumeJson);
@@ -361,62 +271,27 @@ public class ResumeService {
 			// 9. Get message from Gemini
 			String message = updatedSections.get("message").asText();
 			
-			//if there is no update in resume just return the msg
+			//if there is no update in resume just return the msg — no save, no preview
 			JsonNode resumeJson = updatedSections.get("resumeJson");
 
 			if (resumeJson == null || !resumeJson.isObject()) {
-			    return message;
+			    return Map.of("message", message);
 			}
 
 			updatedSections = resumeJson;
-			
-			
 
-			// 10. Parse original complete resume
-			ObjectNode originalResume = (ObjectNode) objectMapper.readTree(originalResumeJson);
+			// Return ONLY the altered sections JSON from Gemini (no personalInformation/educations)
+			String updatedResumeJson = objectMapper.writeValueAsString(updatedSections);
 
-			// 11. Sections that AI is allowed to update
-			String[] sections = {"summary","workExperiences", "projects", "skills", "certifications" };
+			log.info("update resume preview built (not saved): {}", resumeId);
 
-			// 12. Replace only those sections
-			for (String section : sections) {
-
-				if (updatedSections.has(section)) {
-
-					originalResume.set(section, updatedSections.get(section));
-				}
-			}
-			
-			// Synchronize nested personal/personalInfo if summary was modified:
-			if (updatedSections.hasNonNull("summary")) {
-			    String newSummary = updatedSections.get("summary").asText();
-			    if (originalResume.has("personal") && originalResume.get("personal").isObject()) {
-			        ((ObjectNode) originalResume.get("personal")).put("summary", newSummary);
-			    }
-			    if (originalResume.has("personalInfo") && originalResume.get("personalInfo").isObject()) {
-			        ((ObjectNode) originalResume.get("personalInfo")).put("summary", newSummary);
-			    }
-			}
-
-			// 13. Convert merged resume back to JSON
-			String updatedResumeJson = objectMapper.writeValueAsString(originalResume);
-
-			log.info("update resume:{}",updatedResumeJson);
-			// 14. Save to database
-			resume.setResumeDataJson(updatedResumeJson);
-
-			resumeRepository.save(resume);
-
-			log.info("Resume updated and saved successfully: {}", resumeId);
-
-			// 15. Return only Gemini's message
-			return message;
+			return Map.of("message", message, "updatedResumeDataJson", updatedResumeJson);
 
 		} catch (Exception e) {
 
 			log.error("Error while updating resume JSON", e);
 
-			throw new RuntimeException("Failed to update resume JSON", e);
+			throw new RuntimeException("Failed to update resume JSON");
 		}
 	}
 
@@ -441,150 +316,44 @@ public class ResumeService {
 		}
 	}
 
-	/**
-	 * Extracts only the 4 core sections (workExperiences, projects, skills,
-	 * certifications) retaining only the allowed fields from the candidate master
-	 * profile.
-	 */
+	/** Trims profile DTO to only the fields Gemini needs (uses PROFILE_SECTION_FIELDS). */
 	private String buildTrimmedProfileJson(ProfileResponse profile) {
-		if (profile == null)
-			return "{}";
-		return trimFourSections(objectMapper.valueToTree(profile));
+		if (profile == null) return "{}";
+		JsonNode tree = objectMapper.valueToTree(profile);
+		return buildTrimmedJson(tree, PROFILE_SECTION_FIELDS);
 	}
 
-	/**
-	 * Extracts only the 4 core sections from the current resume JSON, matching the
-	 * exact fields taken in master profile.
-	 */
+	/** Trims stored resumeJson to only the fields Gemini needs (uses RESUME_SECTION_FIELDS). */
 	private String buildTrimmedResumeJson(String resumeJson) {
-		if (resumeJson == null || resumeJson.isBlank())
-			return "{}";
+		if (resumeJson == null || resumeJson.isBlank()) return "{}";
 		try {
-			JsonNode tree = objectMapper.readTree(resumeJson);
-			return trimFourSections(tree);
+			return buildTrimmedJson(objectMapper.readTree(resumeJson), RESUME_SECTION_FIELDS);
 		} catch (Exception e) {
 			return "{}";
 		}
 	}
 
-	private String trimFourSections(JsonNode tree) {
-		if (tree == null || !tree.isObject())
-			return "{}";
+	/**
+	 * Centralized trim: picks summary + 4 alterable sections from tree,
+	 * keeping only the fields listed in sectionFields (always includes id).
+	 */
+	private String buildTrimmedJson(JsonNode tree, Map<String, String[]> sectionFields) {
+		if (tree == null || !tree.isObject()) return "{}";
 		try {
 			ObjectNode trimmed = objectMapper.createObjectNode();
-			
-			// 0. Professional Summary
+
+			// Summary — top-level summary string only
 			if (tree.hasNonNull("summary") && !tree.get("summary").asText().isBlank()) {
-			    trimmed.set("summary", tree.get("summary"));
-			} else if (tree.has("personal") && tree.get("personal").hasNonNull("summary")) {
-			    trimmed.set("summary", tree.get("personal").get("summary"));
-			} else if (tree.has("personalInfo") && tree.get("personalInfo").hasNonNull("summary")) {
-			    trimmed.set("summary", tree.get("personalInfo").get("summary"));
-			} else if (tree.has("personalInformation") && tree.get("personalInformation").hasNonNull("summary")) {
-			    trimmed.set("summary", tree.get("personalInformation").get("summary"));
+				trimmed.set("summary", tree.get("summary"));
 			}
 
-
-			// 1. Work Experiences
-			String expKey = tree.has("workExperiences") ? "workExperiences"
-					: (tree.has("experience") ? "experience" : null);
-			if (expKey != null && tree.get(expKey).isArray()) {
-				ArrayNode arr = objectMapper.createArrayNode();
-				for (JsonNode item : tree.get(expKey)) {
-					ObjectNode obj = objectMapper.createObjectNode();
-					if (item.hasNonNull("companyName"))
-						obj.set("companyName", item.get("companyName"));
-					else if (item.hasNonNull("company"))
-						obj.set("companyName", item.get("company"));
-
-					if (item.hasNonNull("jobTitle"))
-						obj.set("jobTitle", item.get("jobTitle"));
-					else if (item.hasNonNull("role"))
-						obj.set("jobTitle", item.get("role"));
-					else if (item.hasNonNull("title"))
-						obj.set("jobTitle", item.get("title"));
-
-					if (item.hasNonNull("description"))
-						obj.set("description", item.get("description"));
-
-					if (item.hasNonNull("technologies"))
-						obj.set("technologies", item.get("technologies"));
-					else if (item.hasNonNull("highlights"))
-						obj.set("technologies", item.get("highlights"));
-
-					if (!obj.isEmpty())
-						arr.add(obj);
+			// 4 alterable sections — each trimmed to its allowed fields + id
+			for (String section : ALTERABLE_SECTIONS) {
+				JsonNode arr = tree.get(section);
+				if (arr != null && arr.isArray()) {
+					ArrayNode out = trimSectionForAI(arr, sectionFields.get(section));
+					if (!out.isEmpty()) trimmed.set(section, out);
 				}
-				if (!arr.isEmpty())
-					trimmed.set("workExperiences", arr);
-			}
-
-			// 2. Projects
-			if (tree.has("projects") && tree.get("projects").isArray()) {
-				ArrayNode arr = objectMapper.createArrayNode();
-				for (JsonNode item : tree.get("projects")) {
-					ObjectNode obj = objectMapper.createObjectNode();
-					if (item.hasNonNull("title"))
-						obj.set("title", item.get("title"));
-					else if (item.hasNonNull("name"))
-						obj.set("title", item.get("name"));
-
-					if (item.hasNonNull("description"))
-						obj.set("description", item.get("description"));
-					if (item.hasNonNull("technologies"))
-						obj.set("technologies", item.get("technologies"));
-
-					if (!obj.isEmpty())
-						arr.add(obj);
-				}
-				if (!arr.isEmpty())
-					trimmed.set("projects", arr);
-			}
-
-			// 3. Skills
-			if (tree.has("skills") && tree.get("skills").isArray()) {
-				ArrayNode arr = objectMapper.createArrayNode();
-				for (JsonNode item : tree.get("skills")) {
-					if (item.isObject()) {
-						ObjectNode obj = objectMapper.createObjectNode();
-						if (item.hasNonNull("title"))
-							obj.set("title", item.get("title"));
-						else if (item.hasNonNull("name"))
-							obj.set("title", item.get("name"));
-						if (item.hasNonNull("category"))
-							obj.set("category", item.get("category"));
-						if (item.hasNonNull("items"))
-							obj.set("items", item.get("items"));
-						if (!obj.isEmpty())
-							arr.add(obj);
-					} else if (item.isTextual()) {
-						arr.add(item);
-					}
-				}
-				if (!arr.isEmpty())
-					trimmed.set("skills", arr);
-			}
-
-			// 4. Certifications
-			if (tree.has("certifications") && tree.get("certifications").isArray()) {
-				ArrayNode arr = objectMapper.createArrayNode();
-				for (JsonNode item : tree.get("certifications")) {
-					ObjectNode obj = objectMapper.createObjectNode();
-					if (item.hasNonNull("title"))
-						obj.set("title", item.get("title"));
-					else if (item.hasNonNull("name"))
-						obj.set("title", item.get("name"));
-
-					if (item.hasNonNull("issuedBy"))
-						obj.set("issuedBy", item.get("issuedBy"));
-					else if (item.hasNonNull("issuer"))
-						obj.set("issuedBy", item.get("issuer"));
-
-					if (!obj.isEmpty())
-						arr.add(obj);
-				}
-				if (!arr.isEmpty())
-					trimmed.set("certifications", arr);
 			}
 
 			return objectMapper.writeValueAsString(trimmed);
@@ -592,6 +361,29 @@ public class ResumeService {
 			return "{}";
 		}
 	}
+
+	/**
+	 * Picks only the specified fields (always including id) from each item in an array.
+	 * Used by both resume and profile trimming.
+	 */
+	private ArrayNode trimSectionForAI(JsonNode array, String[] fields) {
+		ArrayNode out = objectMapper.createArrayNode();
+		if (array == null || fields == null) return out;
+		for (JsonNode item : array) {
+			if (!item.isObject()) continue;
+			ObjectNode obj = objectMapper.createObjectNode();
+			// id is always included if present
+			if (item.hasNonNull("id")) obj.set("id", item.get("id"));
+			for (String f : fields) {
+				if (!f.equals("id") && item.hasNonNull(f)) obj.set(f, item.get(f));
+			}
+			if (obj.size() > 0) out.add(obj);
+		}
+		return out;
+	}
+
+
+
 
 	private String buildTailorPrompt(String jdContent, String profileJson, String currentResumeJson) {
 		String prompt = """
@@ -624,6 +416,7 @@ public class ResumeService {
 				      "summary": "Tailored 3-4 sentence high-impact ATS professional summary..."
 				    "workExperiences": [
 				      {
+				        "id": "<preserve exact id from input>",
 				        "companyName": "Company",
 				        "jobTitle": "Job Title",
 				        "description": "Tailored ATS-optimized description",
@@ -632,17 +425,19 @@ public class ResumeService {
 				    ],
 				    "projects": [
 				      {
+				        "id": "<preserve exact id from input>",
 				        "title": "Project Title",
 				        "description": "Tailored project description(4-5 concise ATS-focused points per project.)",
 				        "technologies": ["Tech1", "Tech2"]
 				      }
 				    ],
-				    "skills": [ ... ],
-				    "certifications": [ ... ]
+				    "skills": [{"id": "<preserve exact id>", "title": "...", "level": "..."}],
+				    "certifications": [{"id": "<preserve exact id>", "title": "...", "issuedBy": "..."}]
 				  },
 				  "gapInJdAndResume": ["Identified gap 1", "Identified gap 2"],
 				  "skillsNeed": ["Skill1", "Skill2"]
 				}
+				IMPORTANT: Always include the exact "id" from the input for every item in workExperiences, projects, skills, and certifications. Never change, invent, or omit ids.
 				Return ONLY valid JSON.
 				"""
 				.formatted(jdContent, profileJson, currentResumeJson);

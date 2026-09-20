@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useSelector } from 'react-redux';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Printer,
+  Download,
   Eye,
   Check,
   User,
@@ -31,6 +31,15 @@ import {
 } from '../components/templates';
 import { ResumeEditorPanel, JdAssistantDrawer } from '../components/resume';
 import { resumeApi, transformProfileToResumeData } from '../services/resumeApi';
+import { mergeResumeData } from '../utils/resumeMerger';
+import { printResumeHTML } from '../utils/printResume';
+import {
+  setCurrentResume,
+  mergeAlteredResume,
+  setSavedResume,
+  setResumeMetadata,
+  setResumeTitle as setReduxResumeTitle,
+} from '../redux/slices/resumeSlice';
 
 export default function ResumeStudioPage() {
   const navigate = useNavigate();
@@ -54,14 +63,19 @@ export default function ResumeStudioPage() {
     loading
   } = useTemplateRenderer(initialSlug);
 
+  const dispatch = useDispatch();
+  const authUser = useSelector((state) => state.auth?.user);
+
+  // Redux single source of truth for current resume state
+  const currentResume = useSelector((state) => state.resume?.currentResume);
+  const savedResumeData = useSelector((state) => state.resume?.savedResume);
+
   const [zoomLevel, setZoomLevel] = useState(80); // %
   const [dataSourceType, setDataSourceType] = useState(resumeId ? 'saved' : 'sample'); // 'saved' | 'sample' | 'user'
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const [loadedResume, setLoadedResume] = useState(null);
-  const [savedResumeData, setSavedResumeData] = useState(null);
-  const [editableData, setEditableData] = useState(null);
-  const [resumeTitle, setResumeTitle] = useState('');
+  const [resumeTitle, setResumeTitleState] = useState('');
   const [isEditorOpen, setIsEditorOpen] = useState(editParam === 'true' || !isPreviewMode);
   const [isLoadingResume, setIsLoadingResume] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -70,7 +84,10 @@ export default function ResumeStudioPage() {
   const [showToast, setShowToast] = useState(false);
   const [isJdDrawerOpen, setIsJdDrawerOpen] = useState(false);
 
-  const authUser = useSelector((state) => state.auth?.user);
+  const setResumeTitle = (title) => {
+    setResumeTitleState(title);
+    dispatch(setReduxResumeTitle(title));
+  };
 
   // Synchronize editor drawer with URL params
   useEffect(() => {
@@ -87,13 +104,16 @@ export default function ResumeStudioPage() {
   useEffect(() => {
     if (!resumeId) {
       setLoadedResume(null);
-      setSavedResumeData(null);
-      setEditableData(null);
+      dispatch(setSavedResume(null));
+      dispatch(setCurrentResume(null));
+      dispatch(setResumeMetadata({ resumeId: null, resumeTitle: '', templateSlug: initialSlug }));
       return;
     }
 
     let isMounted = true;
     setIsLoadingResume(true);
+    // Reset currentResume while loading a new resumeId to prevent stale data race condition
+    dispatch(setCurrentResume(null));
 
     resumeApi
       .getResumeById(resumeId)
@@ -104,16 +124,25 @@ export default function ResumeStudioPage() {
         if (res.templateSlug && res.templateSlug !== activeSlug) {
           setActiveSlug(res.templateSlug);
         }
+
+        let dataToSet = null;
         if (res.resumeDataJson) {
           try {
-            const parsed = typeof res.resumeDataJson === 'string' ? JSON.parse(res.resumeDataJson) : res.resumeDataJson;
-            setSavedResumeData(parsed);
-            setEditableData(parsed);
-            setDataSourceType('saved');
+            dataToSet = typeof res.resumeDataJson === 'string' ? JSON.parse(res.resumeDataJson) : res.resumeDataJson;
           } catch (e) {
             console.warn('Failed to parse resumeDataJson:', e);
           }
         }
+
+        // Fallback to live user profile or sample data if stored resumeDataJson is empty
+        if (!dataToSet || Object.keys(dataToSet).length === 0) {
+          dataToSet = authUser ? transformProfileToResumeData(null, authUser) : sampleResumeData;
+        }
+
+        dispatch(setSavedResume(dataToSet));
+        dispatch(setCurrentResume(dataToSet));
+        dispatch(setResumeMetadata({ resumeId: res.id, resumeTitle: res.title || 'My Resume', templateSlug: res.templateSlug }));
+        setDataSourceType('saved');
       })
       .catch((err) => {
         console.warn('Failed to load resume:', err);
@@ -125,7 +154,7 @@ export default function ResumeStudioPage() {
     return () => {
       isMounted = false;
     };
-  }, [resumeId]);
+  }, [resumeId, dispatch, authUser]);
 
   // Default resume data based on selected source (or live user profile)
   const baseResumeData = useMemo(() => {
@@ -140,8 +169,15 @@ export default function ResumeStudioPage() {
     return sampleResumeData;
   }, [dataSourceType, savedResumeData, authUser]);
 
-  // Active data being edited and rendered
-  const activeResumeData = editableData || baseResumeData;
+  // Ensure Redux currentResume is initialized if null (only when not actively loading a resumeId)
+  useEffect(() => {
+    if (!currentResume && baseResumeData && !isLoadingResume && !resumeId) {
+      dispatch(setCurrentResume(baseResumeData));
+    }
+  }, [baseResumeData, currentResume, isLoadingResume, resumeId, dispatch]);
+
+  // Single source of truth for active resume data (powered by Redux)
+  const activeResumeData = currentResume || baseResumeData;
 
   const handleSaveResume = async () => {
     setIsSaving(true);
@@ -155,7 +191,7 @@ export default function ResumeStudioPage() {
         });
         if (updated) {
           setLoadedResume(updated);
-          setSavedResumeData(dataToSave);
+          dispatch(setSavedResume(dataToSave));
         }
         setLastSaved(new Date());
         setToastMessage('Changes saved to your resume!');
@@ -167,8 +203,9 @@ export default function ResumeStudioPage() {
         const created = await resumeApi.createResumeFromTemplate(currentTemplate, title, dataToSave);
         setLoadedResume(created);
         setResumeTitle(created.title);
-        setSavedResumeData(dataToSave);
-        setEditableData(dataToSave);
+        dispatch(setSavedResume(dataToSave));
+        dispatch(setCurrentResume(dataToSave));
+        dispatch(setResumeMetadata({ resumeId: created.id, resumeTitle: created.title, templateSlug: currentTemplate.slug }));
         setSearchParams({ template: currentTemplate.slug, resumeId: created.id, edit: 'true' });
         setLastSaved(new Date());
         setToastMessage(`Resume created and saved to your account!`);
@@ -236,7 +273,9 @@ export default function ResumeStudioPage() {
     }
   };
 
-     useEffect(() => {
+  const resumeContainerRef = useRef(null);
+
+  useEffect(() => {
     if (authUser && searchParams.get("autoUse") === "true" && currentTemplate) {
       const nextParams = new URLSearchParams(searchParams);
       nextParams.delete("autoUse");
@@ -244,10 +283,12 @@ export default function ResumeStudioPage() {
       handleUseThisTemplate();
     }
   }, [authUser, currentTemplate]);
- 
+  
   const handlePrint = () => {
     setIsUserMenuOpen(false);
-    window.print();
+    if (resumeContainerRef.current) {
+      printResumeHTML(resumeContainerRef.current, resumeTitle || 'My Resume');
+    }
   };
 
   // Keyboard shortcut listener to ensure menus are closed when printing
@@ -435,6 +476,16 @@ export default function ResumeStudioPage() {
               </button>
             )}
 
+            {/* Download PDF Button */}
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-black hover:to-gray-900 text-white text-xs font-semibold rounded-xl shadow-sm transition-all focus:ring-2 focus:ring-gray-900/20 cursor-pointer"
+              title="Download High-Resolution PDF">
+              <Download className="w-3.5 h-3.5 text-rose-400" />
+              <span>Download PDF</span>
+            </button>
+
             {/* Print Button */}
             <button
               type="button"
@@ -537,13 +588,15 @@ export default function ResumeStudioPage() {
           isOpen={isJdDrawerOpen}
           onToggle={() => setIsJdDrawerOpen(!isJdDrawerOpen)}
           resumeId={resumeId || loadedResume?.id}
+          currentResumeData={activeResumeData}
           onResumeAltered={(alteredData) => {
-            setEditableData(alteredData);
-            setSavedResumeData(alteredData);
-            setLastSaved(new Date());
-            setToastMessage("Resume tailored to match Job Description!");
+            if (!alteredData) return;
+            dispatch(mergeAlteredResume(alteredData));
+            // NOT calling setSavedResume — this is a preview only
+            // User must click Save to persist to DB
+            setToastMessage("AI changes previewed — click Save to keep them.");
             setShowToast(true);
-            setTimeout(() => setShowToast(false), 3500);
+            setTimeout(() => setShowToast(false), 4000);
           }}
         />
 
@@ -562,7 +615,7 @@ export default function ResumeStudioPage() {
             <ResumeEditorPanel
               resumeData={activeResumeData}
               onChange={(newData) => {
-                setEditableData(newData);
+                dispatch(setCurrentResume(newData));
               }}
               resumeTitle={resumeTitle}
               onTitleChange={setResumeTitle}
@@ -628,6 +681,7 @@ export default function ResumeStudioPage() {
             </div>
           ) : currentTemplate ? (
             <div
+              ref={resumeContainerRef}
               className="resume-screen-zoom-wrapper"
               style={{
                 transform: `scale(${zoomLevel / 100})`,
@@ -646,18 +700,6 @@ export default function ResumeStudioPage() {
           )}
         </main>
       </div>
-
-      {/* Dedicated Print Portal mounted directly to body (completely outside #root) */}
-      {currentTemplate &&
-        createPortal(
-          <div id="resume-print-portal" aria-hidden="true">
-            <TemplateRenderer
-              template={currentTemplate}
-              resumeData={activeResumeData}
-            />
-          </div>,
-          document.body,
-        )}
     </div>
   );
 }

@@ -93,7 +93,7 @@ public class AuthService {
 
 		} catch (Exception e) {
 			log.error("Error occurred while sending verification email: {}", e.getMessage());
-			throw new RuntimeException("Failed to send verification mail: " + e.getMessage());
+			throw new RuntimeException("Failed to send verification mail: ");
 		}
 	}
 

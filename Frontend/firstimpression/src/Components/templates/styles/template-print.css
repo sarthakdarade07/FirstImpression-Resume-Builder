@@ -1,89 +1,63 @@
 /* ==========================================================================
    DEDICATED RESUME PRINT & DOCUMENT EXPORT STYLES
-   Mounted via body portal (#resume-print-portal).
-   True A4, selectable text, natural pagination, zero extra pages up or down.
+   True A4 portrait, vector typography, natural pagination, zero extra pages.
    ========================================================================== */
 
-/* Hide print portal on screen */
 #resume-print-portal {
   display: none !important;
 }
 
 @page {
   size: A4 portrait;
-  margin: 0;
+  margin: 0mm;
 }
 
 @media print {
-  /* 1. Completely hide #root (the entire React screen app, navbar, sidebar, drawers, toasts) */
-  #root,
-  .print-hide {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    width: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-  }
-
-  /* 2. Document & Body Reset */
+  /* 1. Reset document & body */
   html,
   body {
     margin: 0 !important;
     padding: 0 !important;
     width: 210mm !important;
     height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
+    min-height: 297mm !important;
     background: #ffffff !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
   }
 
-  /* 3. Dedicated Print Portal as direct child of body */
-  #resume-print-portal {
-    display: block !important;
-    visibility: visible !important;
-    position: static !important;
-    width: 210mm !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
+  /* 2. Color and graphic fidelity across all elements */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 3. Strip screen zoom transforms & containers */
+  .resume-screen-zoom-wrapper {
+    transform: none !important;
+    zoom: 1 !important;
     margin: 0 auto !important;
     padding: 0 !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    box-shadow: none !important;
-    border: none !important;
-    transform: none !important;
-  }
-
-  #resume-print-portal .resume-viewport {
-    display: block !important;
     width: 210mm !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
     box-shadow: none !important;
     border: none !important;
-    overflow: visible !important;
-    transform: none !important;
+    background: #ffffff !important;
   }
 
-  #resume-print-portal .resume-page {
+  .resume-viewport,
+  .resume-page {
     position: relative !important;
     left: 0 !important;
     top: 0 !important;
     width: 210mm !important;
     max-width: 210mm !important;
     height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
@@ -91,59 +65,50 @@
     overflow: visible !important;
     box-sizing: border-box !important;
     transform: none !important;
-    page-break-after: auto !important;
-    break-after: auto !important;
   }
 
-  /* 4. Color, background, and graphic fidelity */
-  #resume-print-portal,
-  #resume-print-portal * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* 5. Images preserve aspect ratio */
-  #resume-print-portal img,
-  #resume-print-portal .header-photo,
-  #resume-print-portal .avatar-img,
-  #resume-print-portal .resume-image {
+  /* 4. Preserve image aspect ratio */
+  img,
+  .header-photo,
+  .avatar-img,
+  .resume-image {
     max-width: 100% !important;
     height: auto !important;
     object-fit: cover !important;
   }
 
-  /* 6. Avoid awkward item breaks */
-  #resume-print-portal .timeline-item,
-  #resume-print-portal .experience-item,
-  #resume-print-portal .education-item,
-  #resume-print-portal .project-item,
-  #resume-print-portal .certification-item,
-  #resume-print-portal .skill-group,
-  #resume-print-portal .contact-item,
-  #resume-print-portal .resume-item {
+  /* 5. Avoid awkward page breaks inside items */
+  .timeline-item,
+  .experience-item,
+  .education-item,
+  .project-item,
+  .certification-item,
+  .skill-group,
+  .contact-item,
+  .resume-item {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
 
-  /* 7. Section headings stick with following content */
-  #resume-print-portal .block-section-title,
-  #resume-print-portal .section-title,
-  #resume-print-portal .resume-heading {
+  /* 6. Section headings stick with following content */
+  .block-section-title,
+  .section-title,
+  .resume-heading {
     break-after: avoid !important;
     page-break-after: avoid !important;
   }
 
-  /* 8. Structural containers allow natural multi-page flow */
-  #resume-print-portal .resume-container,
-  #resume-print-portal .resume-columns,
-  #resume-print-portal .resume-column,
-  #resume-print-portal .resume-section,
-  #resume-print-portal .resume-block,
-  #resume-print-portal .experience-list,
-  #resume-print-portal .education-list,
-  #resume-print-portal .modern-columns-layout,
-  #resume-print-portal .modern-main-content,
-  #resume-print-portal .resume-body-columns {
+  /* 7. Structural containers allow natural multi-page flow */
+  .resume-container,
+  .resume-columns,
+  .resume-column,
+  .resume-section,
+  .resume-block,
+  .experience-list,
+  .education-list,
+  .modern-columns-layout,
+  .modern-main-content,
+  .resume-body-columns {
     break-inside: auto !important;
     page-break-inside: auto !important;
   }

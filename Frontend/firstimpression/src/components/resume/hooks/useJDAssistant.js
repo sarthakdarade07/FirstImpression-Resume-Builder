@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../../../api/axios";
-import resumeApi from "../../../services/resumeApi";
 import { uploadJd as uploadJdThunk, fetchJdByResumeId } from "../../../redux/thunks/jdThunk";
 
 const useJDAssistant = ({ resumeId = null }) => {
@@ -102,7 +101,7 @@ const useJDAssistant = ({ resumeId = null }) => {
     }
   };
 
-  const updateResume = async (resumeId, query) => {
+  const updateResume = async (resumeId, query, currentResumeData = null) => {
     setQueryError(null);
  
     const cleanQuery = query?.trim();
@@ -124,21 +123,19 @@ const useJDAssistant = ({ resumeId = null }) => {
     try {
       const response = await api.post(`/api/resumes/${resumeId}/update-resume`, {
         query: cleanQuery,
+        resumeDataJson: currentResumeData ? JSON.stringify(currentResumeData) : null,
       }, {
         timeout: 120000,
       });
         
-      const freshResume = await resumeApi.getResumeById(resumeId);
+      // Use preview data returned directly — no extra fetch, no auto-save
+      const parsedData = response.data?.updatedResumeDataJson
+        ? JSON.parse(response.data.updatedResumeDataJson)
+        : null;
 
-       const parsedData = freshResume?.resumeDataJson
-         ? typeof freshResume.resumeDataJson === "string"
-           ? JSON.parse(freshResume.resumeDataJson)
-           : freshResume.resumeDataJson
-         : freshResume;
-
-          setTailorResult(parsedData);
+      setTailorResult(parsedData);
       return {
-        ...response.data,
+        message: response.data?.message,
         updatedResumeData: parsedData,
       };
     } catch (error) {
@@ -158,7 +155,7 @@ const useJDAssistant = ({ resumeId = null }) => {
     }
   };
 
-  const tailorResume = async (targetResumeId = null) => {
+  const tailorResume = async (targetResumeId = null, currentResumeData = null) => {
     setTailorError(null);
     const activeId = targetResumeId || resumeId;
     if (!activeId) {
@@ -169,7 +166,12 @@ const useJDAssistant = ({ resumeId = null }) => {
 
     setIsTailoring(true);
     try {
-      const result = await resumeApi.tailorResumeToJd(activeId);
+      const response = await api.post(`/api/resumes/${activeId}/tailor-to-jd`, {
+        resumeDataJson: currentResumeData ? JSON.stringify(currentResumeData) : null,
+      }, {
+        timeout: 180000,
+      });
+      const result = response.data;
       setTailorResult(result);
       return result;
     } catch (error) {

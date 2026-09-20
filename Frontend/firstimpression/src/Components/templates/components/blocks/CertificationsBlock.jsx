@@ -14,8 +14,8 @@ export default function CertificationsBlock({ config = {}, title }) {
       {sectionTitle && <h2 className="block-section-title">{sectionTitle}</h2>}
       <div className="certifications-list">
         {certifications.map((cert, index) => {
-          const name = cert.name || cert.title || '';
-          const issuer = cert.issuer || cert.organization || '';
+          const name = cert.title || cert.name || '';
+          const issuer = cert.issuedBy || cert.issuer || cert.organization || '';
           const date = cert.date || cert.issueDate || '';
           const url = cert.url || cert.link || '';
 

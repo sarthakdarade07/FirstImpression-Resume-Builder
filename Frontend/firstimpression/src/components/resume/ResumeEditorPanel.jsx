@@ -92,10 +92,10 @@ export default function ResumeEditorPanel({
     return [];
   };
 
-  const personal = resumeData?.personal || {};
+  const personal = resumeData?.personalInformation || resumeData?.personal || {};
   const summary = resumeData?.summary || '';
-  const experience = resumeData?.experience || [];
-  const education = resumeData?.education || [];
+  const experience = resumeData?.workExperiences || resumeData?.experience || [];
+  const education = resumeData?.educations || resumeData?.education || [];
   const skills = resumeData?.skills || [];
   const projects = resumeData?.projects || [];
   const certifications = resumeData?.certifications || [];
@@ -103,13 +103,14 @@ export default function ResumeEditorPanel({
 
   // Personal Info handlers - atomic updates prevent stale closure overwrites
   const handlePersonalUpdate = (updates) => {
-    onChange({
-      ...resumeData,
-      personal: {
-        ...(resumeData?.personal || {}),
-        ...updates
-      }
-    });
+    const nextPersonal = {
+      ...(resumeData?.personalInformation || resumeData?.personal || {}),
+      ...updates
+    };
+    const nextData = { ...resumeData };
+    if (resumeData?.personalInformation) nextData.personalInformation = nextPersonal;
+    if (resumeData?.personal || !resumeData?.personalInformation) nextData.personal = nextPersonal;
+    onChange(nextData);
   };
 
   const handlePersonalChange = (field, value) => {
@@ -128,11 +129,26 @@ export default function ResumeEditorPanel({
   const handleExperienceChange = (idx, field, value) => {
     const updated = [...experience];
     const item = { ...updated[idx], [field]: value };
+    if (field === 'role' || field === 'jobTitle') {
+      item.role = value;
+      item.jobTitle = value;
+    }
+    if (field === 'company' || field === 'companyName') {
+      item.company = value;
+      item.companyName = value;
+    }
+    if (field === 'startDate' || field === 'joinDate') {
+      item.startDate = value;
+      item.joinDate = value;
+    }
     if (field === 'endDate') {
       item.current = Boolean(value && value.trim().toLowerCase() === 'present');
     }
     updated[idx] = item;
-    onChange({ ...resumeData, experience: updated });
+    const nextData = { ...resumeData };
+    if (resumeData?.workExperiences) nextData.workExperiences = updated;
+    if (resumeData?.experience || !resumeData?.workExperiences) nextData.experience = updated;
+    onChange(nextData);
   };
 
   const handleAddExperience = () => {
@@ -248,7 +264,16 @@ export default function ResumeEditorPanel({
   // Projects handlers
   const handleProjectChange = (idx, field, value) => {
     const updated = [...projects];
-    updated[idx] = { ...updated[idx], [field]: value };
+    const item = { ...updated[idx], [field]: value };
+    if (field === 'name' || field === 'title') {
+      item.name = value;
+      item.title = value;
+    }
+    if (field === 'link' || field === 'projectLink') {
+      item.link = value;
+      item.projectLink = value;
+    }
+    updated[idx] = item;
     onChange({ ...resumeData, projects: updated });
   };
 
@@ -256,7 +281,9 @@ export default function ResumeEditorPanel({
     const newProj = {
       id: `proj-${Date.now()}`,
       name: 'Project Name',
+      title: 'Project Name',
       link: 'https://github.com/username/project',
+      projectLink: 'https://github.com/username/project',
       technologies: ['React', 'Node.js'],
       description: 'Describe the problem solved, architecture, and results.',
       highlights: []
@@ -272,7 +299,20 @@ export default function ResumeEditorPanel({
   // Certifications handlers
   const handleCertChange = (idx, field, value) => {
     const updated = [...certifications];
-    updated[idx] = { ...updated[idx], [field]: value };
+    const item = { ...updated[idx], [field]: value };
+    if (field === 'name' || field === 'title') {
+      item.name = value;
+      item.title = value;
+    }
+    if (field === 'issuer' || field === 'issuedBy') {
+      item.issuer = value;
+      item.issuedBy = value;
+    }
+    if (field === 'date' || field === 'issueDate') {
+      item.date = value;
+      item.issueDate = value;
+    }
+    updated[idx] = item;
     onChange({ ...resumeData, certifications: updated });
   };
 
@@ -748,8 +788,8 @@ export default function ResumeEditorPanel({
                       <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Role / Title</label>
                       <input
                         type="text"
-                        value={exp.role || ''}
-                        onChange={(e) => handleExperienceChange(idx, 'role', e.target.value)}
+                        value={exp.jobTitle !== undefined && exp.jobTitle !== null ? exp.jobTitle : (exp.role || '')}
+                        onChange={(e) => handleExperienceChange(idx, 'jobTitle', e.target.value)}
                         className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 outline-none focus:border-theme-red"
                         placeholder="Role"
                       />
@@ -758,8 +798,8 @@ export default function ResumeEditorPanel({
                       <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Company</label>
                       <input
                         type="text"
-                        value={exp.company || ''}
-                        onChange={(e) => handleExperienceChange(idx, 'company', e.target.value)}
+                        value={exp.companyName !== undefined && exp.companyName !== null ? exp.companyName : (exp.company || '')}
+                        onChange={(e) => handleExperienceChange(idx, 'companyName', e.target.value)}
                         className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 outline-none focus:border-theme-red"
                         placeholder="Company"
                       />
@@ -1232,8 +1272,8 @@ export default function ResumeEditorPanel({
                       <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Project Title</label>
                       <input
                         type="text"
-                        value={proj.name || ''}
-                        onChange={(e) => handleProjectChange(idx, 'name', e.target.value)}
+                        value={proj.title !== undefined && proj.title !== null ? proj.title : (proj.name || '')}
+                        onChange={(e) => handleProjectChange(idx, 'title', e.target.value)}
                         className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 outline-none focus:border-theme-red"
                         placeholder="Project Name"
                       />
@@ -1275,8 +1315,8 @@ export default function ResumeEditorPanel({
                   <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Project Link / Repo URL</label>
                   <input
                     type="text"
-                    value={proj.link || ''}
-                    onChange={(e) => handleProjectChange(idx, 'link', e.target.value)}
+                    value={proj.projectLink !== undefined && proj.projectLink !== null ? proj.projectLink : (proj.link || '')}
+                    onChange={(e) => handleProjectChange(idx, 'projectLink', e.target.value)}
                     className="w-full px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs text-gray-800 outline-none focus:border-theme-red"
                     placeholder="https://..."
                   />
@@ -1375,8 +1415,8 @@ export default function ResumeEditorPanel({
                       <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Certification Title</label>
                       <input
                         type="text"
-                        value={cert.name || ''}
-                        onChange={(e) => handleCertChange(idx, 'name', e.target.value)}
+                        value={cert.title !== undefined && cert.title !== null ? cert.title : (cert.name || '')}
+                        onChange={(e) => handleCertChange(idx, 'title', e.target.value)}
                         className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 outline-none focus:border-theme-red"
                         placeholder="e.g. AWS Certified Solutions Architect"
                       />
@@ -1386,8 +1426,8 @@ export default function ResumeEditorPanel({
                         <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Issuer</label>
                         <input
                           type="text"
-                          value={cert.issuer || ''}
-                          onChange={(e) => handleCertChange(idx, 'issuer', e.target.value)}
+                          value={cert.issuedBy !== undefined && cert.issuedBy !== null ? cert.issuedBy : (cert.issuer || '')}
+                          onChange={(e) => handleCertChange(idx, 'issuedBy', e.target.value)}
                           className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs text-gray-800 outline-none focus:border-theme-red"
                           placeholder="Amazon Web Services"
                         />
@@ -1396,8 +1436,8 @@ export default function ResumeEditorPanel({
                         <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Date</label>
                         <input
                           type="text"
-                          value={cert.date || ''}
-                          onChange={(e) => handleCertChange(idx, 'date', e.target.value)}
+                          value={cert.issueDate !== undefined && cert.issueDate !== null ? cert.issueDate : (cert.date || '')}
+                          onChange={(e) => handleCertChange(idx, 'issueDate', e.target.value)}
                           className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs text-gray-800 outline-none focus:border-theme-red"
                           placeholder="2023"
                         />

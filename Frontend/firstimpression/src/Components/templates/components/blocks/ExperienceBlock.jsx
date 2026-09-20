@@ -4,7 +4,7 @@ import { useTemplateContext } from '../TemplateRenderer/TemplateContext';
 export default function ExperienceBlock({ config = {}, title }) {
   const { resolve } = useTemplateContext();
 
-  const experiences = resolve('experience') || resolve('experiences') || resolve('workExperience') || [];
+  const experiences = resolve('workExperiences') || resolve('experience') || resolve('experiences') || resolve('workExperience') || [];
   if (!Array.isArray(experiences) || experiences.length === 0) return null;
 
   const sectionTitle = title || config.title || 'Work Experience';
@@ -14,14 +14,16 @@ export default function ExperienceBlock({ config = {}, title }) {
       {sectionTitle && <h2 className="block-section-title">{sectionTitle}</h2>}
       <div className="experience-list">
         {experiences.map((exp, index) => {
-          const role = exp.role || exp.title || exp.position || '';
-          const company = exp.company || exp.employer || '';
+          const role = exp.jobTitle || exp.role || exp.title || exp.position || '';
+          const company = exp.companyName || exp.company || exp.employer || '';
           const location = exp.location || '';
-          const startDate = exp.startDate || exp.joinDate || '';
+          const startDate = exp.joinDate || exp.startDate || '';
           const endDate = exp.endDate ? exp.endDate : (exp.current ? 'Present' : '');
           const dateRange = [startDate, endDate].filter(Boolean).join(' – ');
           const description = exp.description || '';
-          const highlights = exp.highlights || exp.bullets || exp.responsibilities || [];
+          const highlights = (Array.isArray(exp.technologies) && exp.technologies.length > 0)
+            ? exp.technologies
+            : (exp.highlights || exp.bullets || exp.responsibilities || []);
 
           return (
             <div key={exp.id || index} className="timeline-item experience-item">
