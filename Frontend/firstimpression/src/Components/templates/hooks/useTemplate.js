@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import templateApi from '../services/templateApi';
-import { TemplateEngine } from '../engine/TemplateEngine';
+import { Template } from '../models/Template';
 
 /**
  * Hook to fetch and manage active template state
@@ -17,7 +17,7 @@ export function useTemplate(initialSlug = 'modern-sidebar') {
     setError(null);
     try {
       const rawTemplate = await templateApi.getTemplateBySlug(targetSlug);
-      const parsed = TemplateEngine.parse(rawTemplate);
+      const parsed = Template.fromJSON(rawTemplate) || rawTemplate;
       setTemplate(parsed);
       setSlug(targetSlug);
     } catch (err) {

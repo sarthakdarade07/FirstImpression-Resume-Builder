@@ -18,7 +18,7 @@ public class TemplateResponse {
 	private String slug;
 	private String description;
 	private String thumbnailUrl;
-	private String structureJson;
+	private String htmlCode;
 	private String cssText;
 	private String configJson;
 	private String category;

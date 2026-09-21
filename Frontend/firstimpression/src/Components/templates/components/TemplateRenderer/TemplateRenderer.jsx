@@ -1,59 +1,74 @@
 import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { Template } from '../../models/Template';
-import { TemplateEngine } from '../../engine/TemplateEngine';
+import { HtmlTemplateEngine } from '../../engine/HtmlTemplateEngine';
 import { TemplateCssManager } from '../../engine/TemplateCssManager';
-import { TemplateProvider } from './TemplateContext';
-import TemplateNode from './TemplateNode';
 
 // Import base resets & print styles
 import '../../styles/template-base.css';
 import '../../styles/template-print.css';
 
 /**
- * Generic Template Renderer
- * Accepts any valid template structure and resume data, mounts scoped CSS,
- * and renders the full recursive component hierarchy.
+ * Single Component Template Renderer
+ * Compiles stored template HTML with dynamic resumeData and mounts scoped pure CSS.
+ * Re-renders reactively in 0ms whenever resumeData or template changes.
  */
-export function TemplateRenderer({ template: templateProp, resumeData = {}, className = '' }) {
-  // Normalize template
-  const template = useMemo(() => {
-    if (!templateProp) return null;
-    return templateProp instanceof Template
-      ? templateProp
-      : TemplateEngine.parse(templateProp);
-  }, [templateProp]);
+export function TemplateRenderer({ template, resumeData = {}, className = '' }) {
+  const slug = template?.slug || 'default';
+  const htmlCode = template?.htmlCode || template?.htmlContent || template?.html || '';
+  const cssText = template?.cssText || template?.css || '';
 
   // Inject scoped CSS dynamically into DOM
   useEffect(() => {
-    if (!template?.slug || !template?.css) return;
+    if (!slug || !cssText) return;
+    TemplateCssManager.applyTemplateCss(slug, cssText, true);
+  }, [slug, cssText]);
 
-    TemplateCssManager.applyTemplateCss(template.slug, template.css, true);
+  // Reactive HTML compilation with resume data
+  const compiledHtml = useMemo(() => {
+    if (!htmlCode) return '';
+    return HtmlTemplateEngine.compile(htmlCode, resumeData);
+  }, [htmlCode, resumeData]);
 
-    return () => {
-      // Keep style mounted for smooth transition, or clean up if switching
-    };
-  }, [template?.slug, template?.css]);
-
-  if (!template || !template.structure) {
+  if (!template || !htmlCode) {
     return (
       <div className="resume-placeholder p-8 text-center text-slate-400">
-        <p>No template structure available to render.</p>
+        <p>No template HTML available to render.</p>
       </div>
     );
   }
 
+  const handleLinkClick = (e) => {
+    const anchor = e.target.closest('a');
+    if (!anchor) return;
+    const href = anchor.getAttribute('href');
+    if (!href) return;
+
+    if (href.startsWith('tel:')) {
+      const cleanNumber = href.replace(/^tel:/, '').replace(/[^\d+]/g, '');
+      if (cleanNumber) {
+        window.location.href = `tel:${cleanNumber}`;
+      }
+    }
+  };
+
   return (
-    <TemplateProvider template={template} resumeData={resumeData}>
-      <div className={`resume-viewport template-${template.slug} ${className}`.trim()}>
-        <TemplateNode node={template.structure} />
-      </div>
-    </TemplateProvider>
+    <div
+      className={`resume-viewport template-${slug} ${className}`.trim()}
+      onClick={handleLinkClick}
+      dangerouslySetInnerHTML={{ __html: compiledHtml }}
+    />
   );
 }
 
 TemplateRenderer.propTypes = {
-  template: PropTypes.oneOfType([PropTypes.object, PropTypes.instanceOf(Template)]),
+  template: PropTypes.shape({
+    slug: PropTypes.string,
+    htmlCode: PropTypes.string,
+    htmlContent: PropTypes.string,
+    html: PropTypes.string,
+    cssText: PropTypes.string,
+    css: PropTypes.string,
+  }),
   resumeData: PropTypes.object,
   className: PropTypes.string,
 };

@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.firstimpression.backend.templates.dto.TemplateCreateRequest;
 import com.firstimpression.backend.templates.dto.TemplateResponse;
-import com.firstimpression.backend.templates.dto.TemplateStructureDto;
 import com.firstimpression.backend.templates.dto.TemplateSummaryResponse;
 import com.firstimpression.backend.templates.dto.TemplateUpdateRequest;
 import com.firstimpression.backend.templates.service.TemplateService;
@@ -74,10 +73,12 @@ public class TemplateController {
 		return ResponseEntity.ok(templateService.getTemplateBySlug(slug));
 	}
 
-	@GetMapping("/{id}/structure")
-	public ResponseEntity<TemplateStructureDto> getTemplateStructure(@PathVariable String id) {
-		log.info("REST: GET /api/templates/{}/structure", id);
-		return ResponseEntity.ok(templateService.getTemplateStructure(id));
+	@GetMapping(value = "/{id}/html", produces = "text/html")
+	public ResponseEntity<String> getTemplateHtml(@PathVariable String id) {
+		log.info("REST: GET /api/templates/{}/html", id);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.valueOf("text/html;charset=UTF-8"));
+		return new ResponseEntity<>(templateService.getTemplateHtml(id), headers, HttpStatus.OK);
 	}
 
 	@GetMapping(value = "/{id}/css", produces = "text/css")

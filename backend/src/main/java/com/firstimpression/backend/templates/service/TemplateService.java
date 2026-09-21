@@ -12,7 +12,6 @@ import com.firstimpression.backend.Exception.ServiceException;
 
 import com.firstimpression.backend.templates.dto.TemplateCreateRequest;
 import com.firstimpression.backend.templates.dto.TemplateResponse;
-import com.firstimpression.backend.templates.dto.TemplateStructureDto;
 import com.firstimpression.backend.templates.dto.TemplateSummaryResponse;
 import com.firstimpression.backend.templates.dto.TemplateUpdateRequest;
 import com.firstimpression.backend.templates.entity.Template;
@@ -74,18 +73,20 @@ public class TemplateService {
 	}
 
 	@Transactional(readOnly = true)
-	public TemplateStructureDto getTemplateStructure(String id) {
-		log.info("Fetching template structure for id: {}", id);
+	public String getTemplateHtml(String id) {
+		log.info("Fetching template HTML for id: {}", id);
 		Template template = templateRepository.findById(id)
-				.orElseThrow(() -> new TemplateNotFoundException("Template not found with ID: " + id));
-		return templateMapper.toStructureDto(template);
+				.or(() -> templateRepository.findBySlug(id.trim().toLowerCase()))
+				.orElseThrow(() -> new TemplateNotFoundException("Template not found with ID or Slug: " + id));
+		return template.getHtmlCode();
 	}
 
 	@Transactional(readOnly = true)
 	public String getTemplateCss(String id) {
 		log.info("Fetching template CSS for id: {}", id);
 		Template template = templateRepository.findById(id)
-				.orElseThrow(() -> new TemplateNotFoundException("Template not found with ID: " + id));
+				.or(() -> templateRepository.findBySlug(id.trim().toLowerCase()))
+				.orElseThrow(() -> new TemplateNotFoundException("Template not found with ID or Slug: " + id));
 		return template.getCssText();
 	}
 
@@ -117,7 +118,7 @@ public class TemplateService {
 		if (request.getName() != null) template.setName(request.getName());
 		if (request.getDescription() != null) template.setDescription(request.getDescription());
 		if (request.getThumbnailUrl() != null) template.setThumbnailUrl(request.getThumbnailUrl());
-		if (request.getStructureJson() != null) template.setStructureJson(request.getStructureJson());
+		if (request.getHtmlCode() != null) template.setHtmlCode(request.getHtmlCode());
 		if (request.getCssText() != null) template.setCssText(request.getCssText());
 		if (request.getConfigJson() != null) template.setConfigJson(request.getConfigJson());
 		if (request.getCategory() != null) template.setCategory(request.getCategory());

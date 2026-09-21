@@ -42,8 +42,12 @@ public class Template {
 	@Column(name = "thumbnail_url", length = 500)
 	private String thumbnailUrl;
 
-	@Column(name = "structure_json", columnDefinition = "LONGTEXT", nullable = false)
-	private String structureJson;
+	@Column(name = "html_code", columnDefinition = "LONGTEXT")
+	private String htmlCode;
+
+	@Builder.Default
+	@Column(name = "structure_json", columnDefinition = "LONGTEXT")
+	private String structureJson = "{}";
 
 	@Column(name = "css_text", columnDefinition = "LONGTEXT", nullable = false)
 	private String cssText;
@@ -77,6 +81,9 @@ public class Template {
 		}
 		if (this.status == null) {
 			this.status = true;
+		}
+		if (this.structureJson == null) {
+			this.structureJson = "{}";
 		}
 	}
 

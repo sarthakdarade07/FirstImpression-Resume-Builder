@@ -1,12 +1,8 @@
-export * from './components/TemplateRenderer';
+export { TemplateRenderer, default } from './components/TemplateRenderer/TemplateRenderer';
 export * from './models/Template';
-export * from './models/TemplateNode';
-export * from './engine/TemplateEngine';
-export * from './engine/DataBindingResolver';
+export * from './engine/HtmlTemplateEngine';
 export * from './engine/TemplateCssManager';
-export * from './registry/templateRegistry';
 export * from './services/templateApi';
-export * from './hooks/useTemplate';
 export * from './hooks/useTemplateRenderer';
 export * from './data/sampleResumeData';
 export * from './data/localTemplates';

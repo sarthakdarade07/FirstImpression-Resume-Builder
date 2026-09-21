@@ -20,7 +20,7 @@ public class TemplateUpdateRequest {
 
 	private String thumbnailUrl;
 
-	private String structureJson;
+	private String htmlCode;
 
 	private String cssText;
 

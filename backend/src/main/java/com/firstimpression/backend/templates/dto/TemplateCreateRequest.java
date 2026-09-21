@@ -28,8 +28,8 @@ public class TemplateCreateRequest {
 
 	private String thumbnailUrl;
 
-	@NotBlank(message = "Structure JSON is required")
-	private String structureJson;
+	@NotBlank(message = "HTML code is required")
+	private String htmlCode;
 
 	@NotBlank(message = "CSS text is required")
 	private String cssText;

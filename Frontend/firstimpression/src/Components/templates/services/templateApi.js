@@ -30,7 +30,7 @@ export const templateApi = {
   },
 
   /**
-   * Fetches full template details (including structure and CSS) by slug
+   * Fetches full template details (including HTML code and CSS) by slug
    * @param {string} slug
    */
   async getTemplateBySlug(slug) {
@@ -54,16 +54,18 @@ export const templateApi = {
   },
 
   /**
-   * Fetches raw structure JSON for a template
+   * Fetches raw HTML code for a template
    * @param {string} slug
    */
-  async getTemplateStructure(slug) {
+  async getTemplateHtml(slug) {
     try {
-      const response = await api.get(`/api/templates/${slug}/structure`);
+      const response = await api.get(`/api/templates/${slug}/html`, {
+        responseType: 'text'
+      });
       return response.data;
     } catch (error) {
       const matched = fallbackTemplates.find(t => t.slug === slug);
-      return matched?.structure || null;
+      return matched?.htmlCode || matched?.html || null;
     }
   },
 
@@ -79,7 +81,7 @@ export const templateApi = {
       return response.data;
     } catch (error) {
       const matched = fallbackTemplates.find(t => t.slug === slug);
-      return matched?.css || '';
+      return matched?.cssText || matched?.css || '';
     }
   }
 };
