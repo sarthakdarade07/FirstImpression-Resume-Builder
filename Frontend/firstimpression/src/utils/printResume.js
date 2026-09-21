@@ -1,19 +1,19 @@
 /**
  * Custom Print Utility for Resume Document Printing
  * Extracts compiled CSSOM rules (Tailwind, template styles, fonts) + link elements,
- * strips screen-only zoom transformations, waits for web fonts and images,
- * and prints as a crisp, high-resolution vector A4 document inside an isolated iframe.
+ * strips screen-only zoom transformations, suppresses browser headers/footers (date, title, URL, page numbers),
+ * and prints as a clean, high-resolution vector document inside an isolated iframe.
  *
  * @param {HTMLElement} resumeElement - The DOM node containing the rendered resume
  * @param {string} documentTitle - Title for the print document / PDF output
  */
-export function printResumeHTML(resumeElement, documentTitle = 'Resume') {
+export function printResumeHTML(resumeElement, documentTitle = '') {
   if (!resumeElement) {
     console.warn('printResumeHTML: No resume element provided.');
     return;
   }
 
-  // 1. Collect all CSS rules from document.styleSheets (includes Vite, Tailwind, CSSOM insertRule, and template CSS)
+  // 1. Collect all CSS rules from document.styleSheets
   let extractedCssText = '';
   const externalLinkTags = [];
 
@@ -32,14 +32,14 @@ export function printResumeHTML(resumeElement, documentTitle = 'Resume') {
     }
   });
 
-  // Also include any explicit link stylesheets from head (Google Fonts, preloads, etc.)
+  // Include explicit link stylesheets from head
   Array.from(document.querySelectorAll('link[rel="stylesheet"]')).forEach((link) => {
     if (link.href && !externalLinkTags.some((tag) => tag.includes(link.href))) {
       externalLinkTags.push(link.outerHTML);
     }
   });
 
-  // 2. Clone the element and strip screen zoom transform inline styles
+  // 2. Clone element & strip screen zoom inline transforms
   const clonedNode = resumeElement.cloneNode(true);
   clonedNode.style.transform = 'none';
   clonedNode.style.transformOrigin = 'initial';
@@ -72,20 +72,20 @@ export function printResumeHTML(resumeElement, documentTitle = 'Resume') {
   const iframeWin = iframe.contentWindow || iframe.contentDocument;
   const doc = iframeWin.document || iframeWin;
 
-  // 4. Construct complete, isolated A4 HTML document with high-DPI print styles
+  // 4. Construct complete HTML with @page { margin: 0 } to suppress browser headers/footers
   const fullDocumentHTML = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="utf-8" />
-        <title>${documentTitle}</title>
+        <title></title>
         ${externalLinkTags.join('\n')}
         <style>
           ${extractedCssText}
 
           @page {
             size: A4 portrait;
-            margin: 0mm;
+            margin: 0 !important; /* Suppresses browser date, title, URL, and page numbers */
           }
           *, *::before, *::after {
             -webkit-print-color-adjust: exact !important;
@@ -96,7 +96,6 @@ export function printResumeHTML(resumeElement, documentTitle = 'Resume') {
             margin: 0 !important;
             padding: 0 !important;
             width: 210mm !important;
-            min-height: 297mm !important;
             height: auto !important;
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -115,19 +114,34 @@ export function printResumeHTML(resumeElement, documentTitle = 'Resume') {
             zoom: 1 !important;
             margin: 0 auto !important;
             padding: 0 !important;
+            width: 210mm !important;
             box-shadow: none !important;
             border: none !important;
             background: #ffffff !important;
+          }
+          .resume-page,
+          .resume-viewport,
+          [class*="template-"] {
+            transform: none !important;
+            zoom: 1 !important;
+            margin: 0 auto !important;
+            padding: 10mm 12mm !important; /* Document margins inside page */
+            width: 210mm !important;
+            max-width: 210mm !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: #ffffff !important;
+            box-sizing: border-box !important;
           }
           .print-hide {
             display: none !important;
             visibility: hidden !important;
           }
-          .timeline-item, .experience-item, .education-item, .project-item, .skill-group, .certification-item {
+          .timeline-item, .experience-item, .education-item, .project-item, .certification-item, .skill-group, .contact-item, .resume-item, .block-item {
             break-inside: avoid !important;
             page-break-inside: avoid !important;
           }
-          .block-section-title, .section-title, .resume-heading {
+          .block-section-title, .section-title, .candidate-name, .resume-heading, h1, h2, h3, h4 {
             break-after: avoid !important;
             page-break-after: avoid !important;
           }
@@ -151,7 +165,7 @@ export function printResumeHTML(resumeElement, documentTitle = 'Resume') {
     printed = true;
 
     try {
-      // Wait for custom web fonts (Google Fonts, etc.) to finish loading
+      // Wait for custom web fonts to finish loading
       if (doc.fonts && doc.fonts.ready) {
         await doc.fonts.ready;
       }
@@ -170,7 +184,6 @@ export function printResumeHTML(resumeElement, documentTitle = 'Resume') {
       console.warn('Asset preloading warning prior to print:', e);
     }
 
-    // Delay briefly to allow browser layout recalculations for vector text
     setTimeout(() => {
       try {
         iframeWin.focus();

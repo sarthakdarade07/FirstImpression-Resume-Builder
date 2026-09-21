@@ -163,6 +163,38 @@
 .block-header .contact-item a {
   color: inherit;
   text-decoration: none;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  transition: opacity 0.15s ease, text-decoration 0.15s ease;
+}
+
+.block-header .contact-item a:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+.resume-viewport a,
+.resume-page a {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.timeline-title a,
+.project-link,
+.cert-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  transition: opacity 0.15s ease;
+}
+
+.timeline-title a:hover,
+.project-link:hover,
+.cert-link:hover {
+  opacity: 0.75;
 }
 
 /* Section Titles across blocks */

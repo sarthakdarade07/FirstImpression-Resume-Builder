@@ -59,7 +59,7 @@ public class Template {
 	private Integer version = 1;
 
 	@Builder.Default
-	@Column(nullable = false)
+	@Column(columnDefinition = "TINYINT(1) DEFAULT 1", nullable = false)
 	private Boolean status = true;
 
 	@Column(name = "created_at", nullable = false, updatable = false)

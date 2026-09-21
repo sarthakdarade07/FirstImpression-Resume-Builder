@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import com.firstimpression.backend.Exception.ServiceException;
 import com.firstimpression.backend.model.JobDescription;
 import com.firstimpression.backend.model.Users;
 import com.firstimpression.backend.Services.ai.JdService;
@@ -44,25 +45,22 @@ public class GeminiController {
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestParam(value = "text", required = false) String text,
             @RequestParam(value = "resumeId", required = false) String resumeId,
-            Authentication authentication) {
+            Authentication authentication) throws Exception {
         Users user = getAuthenticatedUser(authentication);
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required");
+            throw new ServiceException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
 
         try {
             JobDescription jd = jdService.uploadJd(file, text, resumeId, user);
             return ResponseEntity.status(HttpStatus.CREATED).body(jd);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error processing JD upload", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to process job description: " + e.getMessage());
+            throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process job description: " + e.getMessage(), e);
         }
     }
-
-
 
     @GetMapping("/jd/resume/{resumeId}")
     public ResponseEntity<?> getJdByResumeId(
@@ -70,7 +68,7 @@ public class GeminiController {
             Authentication authentication) {
         Users user = getAuthenticatedUser(authentication);
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required");
+            throw new ServiceException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
 
         return ResponseEntity.ok(jdService.getJdByResumeId(resumeId, user).orElse(null));

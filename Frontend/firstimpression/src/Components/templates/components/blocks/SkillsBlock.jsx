@@ -28,7 +28,7 @@ export default function SkillsBlock({ config = {}, title }) {
                 <ul className="skills-list">
                   {items.map((skill, sIdx) => (
                     <li key={sIdx} className="skill-tag skill-badge">
-                      {typeof skill === 'string' ? skill : (skill.title || skill.name || skill.skill || '')}
+                      {typeof skill === 'string' ? skill : (skill.title || skill.name || skill.skill || skill.skillName || '')}
                     </li>
                   ))}
                 </ul>
@@ -40,7 +40,7 @@ export default function SkillsBlock({ config = {}, title }) {
         <ul className="skills-list">
           {skillsData.map((skill, idx) => (
             <li key={idx} className="skill-tag skill-badge">
-              {typeof skill === 'string' ? skill : (skill.title || skill.name || skill.skill || '')}
+              {typeof skill === 'string' ? skill : (skill.title || skill.name || skill.skill || skill.skillName || '')}
             </li>
           ))}
         </ul>

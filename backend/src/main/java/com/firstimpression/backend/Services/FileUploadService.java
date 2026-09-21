@@ -5,11 +5,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.firstimpression.backend.Exception.ServiceException;
 import com.firstimpression.backend.Repository.UsersRepository;
 import com.firstimpression.backend.model.Users;
 
@@ -36,14 +38,14 @@ public class FileUploadService {
 		log.info("Inside FileUploadService - uploadImage(): {}", file != null ? file.getOriginalFilename() : "null");
 
 		if (file == null || file.isEmpty()) {
-			throw new IllegalArgumentException("Image file cannot be empty.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Image file cannot be empty.");
 		}
 
 		String originalFilename = file.getOriginalFilename();
 		if (originalFilename != null && originalFilename.contains(".")) {
 			String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
 			if (!ALLOWED_EXTENSIONS.contains(extension)) {
-				throw new IllegalArgumentException("Unsupported image format: ." + extension + ". Supported formats: JPG, PNG, WEBP, HEIC, HEIF, GIF, BMP.");
+				throw new ServiceException(HttpStatus.BAD_REQUEST, "Unsupported image format: ." + extension + ". Supported formats: JPG, PNG, WEBP, HEIC, HEIF, GIF, BMP.");
 			}
 		}
 
@@ -67,14 +69,14 @@ public class FileUploadService {
 		log.info("Inside FileUploadService - uploadDocument(): {}", file != null ? file.getOriginalFilename() : "null");
 
 		if (file == null || file.isEmpty()) {
-			throw new IllegalArgumentException("File cannot be empty.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "File cannot be empty.");
 		}
 
 		String originalFilename = file.getOriginalFilename();
 		if (originalFilename != null && originalFilename.contains(".")) {
 			String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
 			if (!ALLOWED_DOC_EXTENSIONS.contains(extension)) {
-				throw new IllegalArgumentException("Unsupported document format: ." + extension + ". Supported formats: PDF, DOC, DOCX.");
+				throw new ServiceException(HttpStatus.BAD_REQUEST, "Unsupported document format: ." + extension + ". Supported formats: PDF, DOC, DOCX.");
 			}
 		}
 
@@ -116,14 +118,14 @@ public class FileUploadService {
 		log.info("Inside FileUploadService - processDocument(): {}", file != null ? file.getOriginalFilename() : "null");
 
 		if (file == null || file.isEmpty()) {
-			throw new IllegalArgumentException("File cannot be empty.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "File cannot be empty.");
 		}
 
 		String originalFilename = file.getOriginalFilename();
 		if (originalFilename != null && originalFilename.contains(".")) {
 			String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
 			if (!ALLOWED_DOC_EXTENSIONS.contains(extension)) {
-				throw new IllegalArgumentException("Unsupported document format: ." + extension + ". Supported formats: PDF, DOC, DOCX, TXT.");
+				throw new ServiceException(HttpStatus.BAD_REQUEST, "Unsupported document format: ." + extension + ". Supported formats: PDF, DOC, DOCX, TXT.");
 			}
 		}
 

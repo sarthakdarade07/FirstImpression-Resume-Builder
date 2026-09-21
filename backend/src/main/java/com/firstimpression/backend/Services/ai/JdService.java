@@ -13,10 +13,12 @@ import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firstimpression.backend.Exception.ServiceException;
 import com.firstimpression.backend.Repository.JobDescriptionRepository;
 import com.firstimpression.backend.Repository.ResumeRepository;
 import com.firstimpression.backend.Services.FileUploadService;
@@ -67,18 +69,18 @@ public class JdService {
                 rawText = new String(docFile.getBytes(), StandardCharsets.UTF_8);
                 inputType = "TEXT";
             } else {
-                throw new IllegalArgumentException("Unsupported file type: " + fileName + ". Supported types: PDF, DOCX, TXT");
+                throw new ServiceException(HttpStatus.BAD_REQUEST, "Unsupported file type: " + fileName + ". Supported types: PDF, DOCX, TXT");
             }
         } else if (text != null && !text.trim().isEmpty()) {
             rawText = text.trim();
             inputType = "TEXT";
         } else {
-            throw new IllegalArgumentException("Either a file (PDF/DOCX/TXT) or plain text must be provided.");
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "Either a file (PDF/DOCX/TXT) or plain text must be provided.");
         }
 
         String cleanedText = cleanJdText(rawText);
         if (cleanedText.isBlank()) {
-            throw new IllegalArgumentException("Extracted job description text is empty.");
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "Extracted job description text is empty.");
         }
 
         String prompt = buildExtractionPrompt(cleanedText);
@@ -88,7 +90,7 @@ public class JdService {
             objectMapper.readTree(jsonResponse);
         } catch (Exception e) {
             log.error("Failed to parse Gemini response as JSON: {}", jsonResponse, e);
-            throw new IllegalArgumentException("Gemini returned invalid JSON structure for Job Description");
+            throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Gemini returned invalid JSON structure for Job Description");
         }
 
         Resume resume = null;

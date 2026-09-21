@@ -4,10 +4,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firstimpression.backend.Exception.ServiceException;
 
 @Component
 public class TemplateStructureValidator {
@@ -29,18 +31,18 @@ public class TemplateStructureValidator {
 
 	public void validate(String structureJson) {
 		if (structureJson == null || structureJson.trim().isEmpty()) {
-			throw new IllegalArgumentException("Template structureJson cannot be empty");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Template structureJson cannot be empty");
 		}
 
 		JsonNode rootNode;
 		try {
 			rootNode = objectMapper.readTree(structureJson);
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Template structureJson is not valid JSON: " + e.getMessage());
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Template structureJson is not valid JSON: " + e.getMessage());
 		}
 
 		if (!rootNode.isObject()) {
-			throw new IllegalArgumentException("Root node of structureJson must be a JSON object");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Root node of structureJson must be a JSON object");
 		}
 
 		validateNode(rootNode, 1);
@@ -48,33 +50,33 @@ public class TemplateStructureValidator {
 
 	private void validateNode(JsonNode node, int currentDepth) {
 		if (currentDepth > MAX_DEPTH) {
-			throw new IllegalArgumentException("Template structure exceeds maximum nesting depth of " + MAX_DEPTH);
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Template structure exceeds maximum nesting depth of " + MAX_DEPTH);
 		}
 
 		if (!node.hasNonNull("type")) {
-			throw new IllegalArgumentException("Every node in structure must have a 'type' attribute");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Every node in structure must have a 'type' attribute");
 		}
 
 		String type = node.get("type").asText().toLowerCase();
 		if (!ALLOWED_NODE_TYPES.contains(type)) {
-			throw new IllegalArgumentException("Unsupported node type: '" + type + "'. Allowed types: " + ALLOWED_NODE_TYPES);
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Unsupported node type: '" + type + "'. Allowed types: " + ALLOWED_NODE_TYPES);
 		}
 
 		if ("block".equals(type) && node.hasNonNull("block")) {
 			String blockName = node.get("block").asText().toLowerCase();
 			if (!ALLOWED_BLOCKS.contains(blockName)) {
-				throw new IllegalArgumentException("Unsupported block name: '" + blockName + "'. Allowed blocks: " + ALLOWED_BLOCKS);
+				throw new ServiceException(HttpStatus.BAD_REQUEST, "Unsupported block name: '" + blockName + "'. Allowed blocks: " + ALLOWED_BLOCKS);
 			}
 		}
 
 		if (node.has("children")) {
 			JsonNode children = node.get("children");
 			if (!children.isArray()) {
-				throw new IllegalArgumentException("Node 'children' property must be an array");
+				throw new ServiceException(HttpStatus.BAD_REQUEST, "Node 'children' property must be an array");
 			}
 			for (JsonNode child : children) {
 				if (!child.isObject()) {
-					throw new IllegalArgumentException("Child node must be a JSON object");
+					throw new ServiceException(HttpStatus.BAD_REQUEST, "Child node must be a JSON object");
 				}
 				validateNode(child, currentDepth + 1);
 			}

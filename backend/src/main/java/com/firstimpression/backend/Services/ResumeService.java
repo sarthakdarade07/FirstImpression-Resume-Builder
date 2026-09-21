@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.firstimpression.backend.Exception.ServiceException;
 import com.firstimpression.backend.Repository.JobDescriptionRepository;
 import com.firstimpression.backend.Repository.ResumeRepository;
 import com.firstimpression.backend.Services.ai.GeminiClientService;
@@ -96,7 +98,7 @@ public class ResumeService {
 	public ResumeResponse getResumeById(Users user, String resumeId) {
 		log.info("Fetching resume: {} for user: {}", resumeId, user.getId());
 		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
-				.orElseThrow(() -> new RuntimeException("Resume not found with ID: " + resumeId));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
 		return toResponse(resume);
 	}
 
@@ -104,7 +106,7 @@ public class ResumeService {
 	public void deleteResume(Users user, String resumeId) {
 		log.info("Deleting resume: {} for user: {}", resumeId, user.getId());
 		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
-				.orElseThrow(() -> new RuntimeException("Resume not found with ID: " + resumeId));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
 		resumeRepository.delete(resume);
 	}
 
@@ -112,7 +114,7 @@ public class ResumeService {
 	public ResumeResponse updateResume(Users user, String resumeId, ResumeCreateRequest request) {
 		log.info("Updating resume: {} for user: {}", resumeId, user.getId());
 		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
-				.orElseThrow(() -> new RuntimeException("Resume not found with ID: " + resumeId));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
 
 		if (request.getTitle() != null && !request.getTitle().isBlank()) {
 			resume.setTitle(request.getTitle());
@@ -137,7 +139,7 @@ public class ResumeService {
 
 		// 1. Fetch Resume
 		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
-				.orElseThrow(() -> new RuntimeException("Resume not found with ID: " + resumeId));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
 
 		// 2. Fetch Job Description associated with this resumeId (or most recent for
 		// user)
@@ -148,7 +150,7 @@ public class ResumeService {
 					if (userJds != null && !userJds.isEmpty()) {
 						return userJds.get(0);
 					}
-					throw new RuntimeException(
+					throw new ServiceException(HttpStatus.NOT_FOUND,
 							"No Job Description found. Please upload or analyze a Job Description in the Resume Assistant first.");
 				});
 
@@ -234,7 +236,7 @@ public class ResumeService {
 
 		// 2. Fetch resume
 		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
-				.orElseThrow(() -> new RuntimeException("Resume not found with ID: " + resumeId));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
 
 		// 3. Get original complete resume JSON (prefer live unsaved client JSON from Redux)
 		String originalResumeJson = (clientResumeDataJson != null && !clientResumeDataJson.isBlank())
@@ -265,7 +267,7 @@ public class ResumeService {
 
 			// 8. Validate Gemini response
 			if (!updatedSections.isObject()) {
-				throw new RuntimeException("Invalid AI response: expected JSON object");
+				throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid AI response: expected JSON object");
 			}
 
 			// 9. Get message from Gemini
@@ -287,11 +289,13 @@ public class ResumeService {
 
 			return Map.of("message", message, "updatedResumeDataJson", updatedResumeJson);
 
+		} catch (ServiceException e) {
+			throw e;
 		} catch (Exception e) {
 
 			log.error("Error while updating resume JSON", e);
 
-			throw new RuntimeException("Failed to update resume JSON");
+			throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update resume JSON", e);
 		}
 	}
 
@@ -494,7 +498,7 @@ public class ResumeService {
 
 	private JsonNode sanitizeAndParseJson(String raw) {
 		if (raw == null || raw.isBlank()) {
-			throw new RuntimeException("Empty response received from AI model.");
+			throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Empty response received from AI model.");
 		}
 
 		String cleaned = raw.trim();
@@ -524,7 +528,7 @@ public class ResumeService {
 				return objectMapper.readTree(repaired);
 			} catch (Exception secondaryEx) {
 				log.error("Secondary JSON repair failed on: {}", cleaned, secondaryEx);
-				throw new RuntimeException(
+				throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR,
 						"AI generated response could not be parsed as valid JSON: " + primaryEx.getMessage(),
 						primaryEx);
 			}

@@ -2,12 +2,17 @@ package com.firstimpression.backend.Services.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firstimpression.backend.Exception.ServiceException;
+import com.firstimpression.backend.util.SanitizeErrorMessage;
+import com.google.api.client.http.HttpStatusCodes;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -43,7 +48,9 @@ public class GeminiClientService {
 
     @Value("${grok.api.url:https://api.x.ai/v1/chat/completions}")
     private String grokApiUrl;
-
+    
+      
+    
     public GeminiClientService(@Autowired(required = false) Client geminiClient) {
         this.geminiClient = geminiClient;
     }
@@ -59,8 +66,8 @@ public class GeminiClientService {
     }
 
     private String generateWithGemini(String prompt) {
-        if (geminiClient == null) {
-            throw new IllegalStateException("Gemini client is not initialized.");
+        if (geminiClient == null) { 
+            throw new ServiceException( HttpStatus.SERVICE_UNAVAILABLE,"Gemini client is not initialized.");
         }
         try {
             com.google.genai.types.GenerateContentConfig config = com.google.genai.types.GenerateContentConfig.builder()
@@ -68,19 +75,20 @@ public class GeminiClientService {
                     .build();
             GenerateContentResponse response = geminiClient.models.generateContent(geminiModel, prompt, config);
             if (response == null || response.text() == null) {
-                throw new IllegalStateException("Empty response received from Gemini API");
+                throw new ServiceException( HttpStatus.BAD_GATEWAY,"Empty response received from Gemini API");
+ 
             }
             return cleanMarkdownJson(response.text());
-        } catch (Exception e) {
-            String safeError = sanitizeErrorMessage(e.getMessage());
-            log.error("Gemini API call error: {}", safeError);
-            throw new RuntimeException("Gemini generation failed: " + safeError);
-        }
-    }
+        } catch (Exception e) {  
+            String safeError = SanitizeErrorMessage.safeError(e.getMessage());
+            log.error("Gemini API call error: {}", safeError); 
+            throw new ServiceException(HttpStatus.BAD_GATEWAY,"Gemini generation failed: " + safeError);
+        } 
+    } 
 
     private String generateWithGrok(String prompt) {
         if (grokApiKey == null || grokApiKey.isBlank()) {
-            throw new IllegalStateException("Grok API key is missing.");
+            throw new ServiceException(HttpStatus.NOT_FOUND, "Grok API key is missing.");
         }
         try {
             Map<String, Object> body = Map.of(
@@ -112,13 +120,13 @@ public class GeminiClientService {
                     String content = choices.get(0).path("message").path("content").asText();
                     return cleanMarkdownJson(content);
                 }
-                throw new IllegalStateException("Grok returned no choices in response");
+                throw new ServiceException(HttpStatus.BAD_GATEWAY,"Grok returned no choices in response");
             } else {
-                String safeError = sanitizeErrorMessage(response.body());
+                String safeError = SanitizeErrorMessage.safeError(response.body());
                 throw new RuntimeException("Grok API error (" + response.statusCode() + "): " + safeError);
             }
-        } catch (Exception e) {
-            String safeError = sanitizeErrorMessage(e.getMessage());
+        } catch (Exception e) { 
+            String safeError = SanitizeErrorMessage.safeError(e.getMessage());
             log.error("Grok API call error: {}", safeError);
             throw new RuntimeException("Grok generation failed: " + safeError, e);
         }
@@ -140,11 +148,5 @@ public class GeminiClientService {
         return trimmed.trim();
     }
 
-    private String sanitizeErrorMessage(String message) {
-        if (message == null) return "Unknown error";
-        return message.replaceAll("(?i)key=[^&\\s]+", "key=REDACTED")
-                .replaceAll("(?i)Bearer\\s+[^&\\s]+", "Bearer REDACTED")
-                .replaceAll("xai-[0-9A-Za-z-_]{25,}", "REDACTED")
-                .replaceAll("AIza[0-9A-Za-z-_]{35}", "REDACTED");
-    }
+ 
 }

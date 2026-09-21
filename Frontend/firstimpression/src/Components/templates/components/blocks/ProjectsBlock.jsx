@@ -15,7 +15,8 @@ export default function ProjectsBlock({ config = {}, title }) {
       <div className="projects-list">
         {projects.map((proj, index) => {
           const name = proj.title || proj.name || '';
-          const link = proj.projectLink || proj.link || proj.url || '';
+          const link = proj.projectLink || proj.link || proj.url || proj.repoUrl || proj.githubUrl || '';
+          const projectUrl = link ? (link.startsWith('http') ? link : `https://${link}`) : '';
           const technologies = proj.technologies || proj.techStack || proj.tools || [];
           const techString = Array.isArray(technologies) ? technologies.join(', ') : technologies;
           const description = proj.description || '';
@@ -26,9 +27,14 @@ export default function ProjectsBlock({ config = {}, title }) {
               <div className="timeline-header">
                 <div>
                   <span className="timeline-title">
-                    {link ? (
-                      <a href={link.startsWith('http') ? link : `https://${link}`} target="_blank" rel="noreferrer">
-                        {name}
+                    {projectUrl ? (
+                      <a
+                        href={projectUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="project-link"
+                      >
+                        {name || link}
                       </a>
                     ) : (
                       name

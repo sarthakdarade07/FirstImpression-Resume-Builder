@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.firstimpression.backend.Exception.ServiceException;
 import com.firstimpression.backend.Repository.CertificationRepository;
 import com.firstimpression.backend.Repository.EducationRepository;
 import com.firstimpression.backend.Repository.EducationTypeRepository;
@@ -69,7 +71,7 @@ public class ProfileService {
 
 		Users principal = (Users) principalObj; 
 		Users user = usersRepository.findById(principal.getId())
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "User not found"));
 		
 		return ProfileResponse.builder()
 	            .personalInformation(toPersonalInformationResponse(user.getPersonalInformation()))
@@ -111,7 +113,7 @@ public class ProfileService {
 	public Users updateName(Users principal, String newName) {
 		log.info("Inside ProfileService - updateName() for user: {}", principal.getId());
 		Users user = usersRepository.findById(principal.getId())
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "User not found"));
 
 		user.setName(newName.trim());
 		Users savedUser = usersRepository.save(user);
@@ -159,10 +161,10 @@ public class ProfileService {
 		List<Education> educationList = new ArrayList<>();
 		for (EducationRequest educationReq : req) {
 			EducationType educationType = educationTypeRepository.findById(educationReq.getEducationTypeId())
-					.orElseThrow(() -> new RuntimeException("Invalid Education Type"));
+					.orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "Invalid Education Type"));
 
 			ScoreType scoreType = scoreTypeRepository.findById(educationReq.getScoreTypeId())
-					.orElseThrow(() -> new RuntimeException("Invalid Score Type"));
+					.orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "Invalid Score Type"));
 
 			Education edu = Education.builder()
 					.user(user)

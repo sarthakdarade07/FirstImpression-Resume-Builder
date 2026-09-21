@@ -1,6 +1,6 @@
 /* ==========================================================================
    DEDICATED RESUME PRINT & DOCUMENT EXPORT STYLES
-   True A4 portrait, vector typography, natural pagination, zero extra pages.
+   True A4 portrait, vector typography, zero extra browser headers/footers.
    ========================================================================== */
 
 #resume-print-portal {
@@ -9,7 +9,7 @@
 
 @page {
   size: A4 portrait;
-  margin: 0mm;
+  margin: 0 !important; /* Suppresses browser headers/footers (date, title, URL, page numbers) */
 }
 
 @media print {
@@ -20,7 +20,6 @@
     padding: 0 !important;
     width: 210mm !important;
     height: auto !important;
-    min-height: 297mm !important;
     background: #ffffff !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
@@ -38,7 +37,7 @@
     print-color-adjust: exact !important;
   }
 
-  /* 3. Strip screen zoom transforms & containers */
+  /* 3. Strip screen zoom transforms & set exact page padding */
   .resume-screen-zoom-wrapper {
     transform: none !important;
     zoom: 1 !important;
@@ -51,14 +50,16 @@
   }
 
   .resume-viewport,
-  .resume-page {
+  .resume-page,
+  [class*="template-"] {
     position: relative !important;
     left: 0 !important;
     top: 0 !important;
     width: 210mm !important;
     max-width: 210mm !important;
     height: auto !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
+    padding: 10mm 12mm !important; /* Exact document margins inside page */
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
@@ -85,7 +86,8 @@
   .certification-item,
   .skill-group,
   .contact-item,
-  .resume-item {
+  .resume-item,
+  .block-item {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
@@ -93,7 +95,9 @@
   /* 6. Section headings stick with following content */
   .block-section-title,
   .section-title,
-  .resume-heading {
+  .candidate-name,
+  .resume-heading,
+  h1, h2, h3, h4 {
     break-after: avoid !important;
     page-break-after: avoid !important;
   }

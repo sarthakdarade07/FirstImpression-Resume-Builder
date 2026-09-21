@@ -4,8 +4,11 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.firstimpression.backend.Exception.ServiceException;
 
 import com.firstimpression.backend.templates.dto.TemplateCreateRequest;
 import com.firstimpression.backend.templates.dto.TemplateResponse;
@@ -91,7 +94,7 @@ public class TemplateService {
 		log.info("Creating new template with slug: {}", request.getSlug());
 
 		if (templateRepository.existsBySlug(request.getSlug().trim().toLowerCase())) {
-			throw new IllegalArgumentException("Template with slug '" + request.getSlug() + "' already exists");
+			throw new ServiceException(HttpStatus.CONFLICT, "Template with slug '" + request.getSlug() + "' already exists");
 		}
 
 		validationService.validateCreateRequest(request);
@@ -104,9 +107,10 @@ public class TemplateService {
 
 	@Transactional
 	public TemplateResponse updateTemplate(String id, TemplateUpdateRequest request) {
-		log.info("Updating template with id: {}", id);
+		log.info("Updating template with id or slug: {}", id);
 		Template template = templateRepository.findById(id)
-				.orElseThrow(() -> new TemplateNotFoundException("Template not found with ID: " + id));
+				.or(() -> templateRepository.findBySlug(id.trim().toLowerCase()))
+				.orElseThrow(() -> new TemplateNotFoundException("Template not found with ID or Slug: " + id));
 
 		validationService.validateUpdateRequest(request);
 
@@ -127,9 +131,10 @@ public class TemplateService {
 
 	@Transactional
 	public void deleteTemplate(String id) {
-		log.info("Deleting template with id: {}", id);
+		log.info("Deleting template with id or slug: {}", id);
 		Template template = templateRepository.findById(id)
-				.orElseThrow(() -> new TemplateNotFoundException("Template not found with ID: " + id));
+				.or(() -> templateRepository.findBySlug(id.trim().toLowerCase()))
+				.orElseThrow(() -> new TemplateNotFoundException("Template not found with ID or Slug: " + id));
 		// Soft delete by marking inactive
 		template.setStatus(false);
 		templateRepository.save(template);

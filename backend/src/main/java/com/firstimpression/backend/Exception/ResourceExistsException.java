@@ -1,9 +1,12 @@
 package com.firstimpression.backend.Exception;
 
-public class ResourceExistsException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class ResourceExistsException extends ServiceException {
 	
 	public ResourceExistsException(String msg) {
-		super(msg);
+		super(HttpStatus.CONFLICT, msg);
 	}
 
 }
+

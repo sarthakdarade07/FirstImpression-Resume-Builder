@@ -1,5 +1,6 @@
 package com.firstimpression.backend.Services.ai;
 
+import com.firstimpression.backend.util.SanitizeErrorMessage;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import org.slf4j.Logger;
@@ -12,8 +13,7 @@ public class GeminiTestService {
 
     private static final Logger log = LoggerFactory.getLogger(GeminiTestService.class);
 
-    private final Client geminiClient;
-
+    private final Client geminiClient;  
     @Value("${gemini.model:gemini-3.5-flash-lite}")
     private String model;
 
@@ -37,17 +37,11 @@ public class GeminiTestService {
             }
             return "No response text received from Gemini";
         } catch (Exception e) {
-            String safeError = sanitizeErrorMessage(e.getMessage());
+            String safeError = SanitizeErrorMessage.safeError(e.getMessage());
             log.error("Gemini API connection test failed: {}", safeError);
             return "Gemini API test failed: " + safeError;
         }
     }
 
-    private String sanitizeErrorMessage(String message) {
-        if (message == null) {
-            return "Unknown error";
-        }
-        return message.replaceAll("(?i)key=[^&\\s]+", "key=REDACTED")
-                      .replaceAll("AIza[0-9A-Za-z-_]{35}", "REDACTED");
-    }
+   
 }

@@ -16,7 +16,7 @@ export function transformProfileToResumeData(profile = {}, user = {}) {
   const name = pi.name || user?.name || auth.name || 'Your Name';
   const role = pi.role || 'Professional';
   const email = pi.email || user?.email || auth.email || '';
-  const phone = pi.phoneNo || '';
+  const phone = pi.phoneNo || pi.phone || '';
   const location = pi.location || '';
   const photoUrl = pi.photoUrl || user?.profileImageUrl || '';
 
@@ -48,29 +48,51 @@ export function transformProfileToResumeData(profile = {}, user = {}) {
     highlights: edu.highlights || []
   }));
 
-  const skills = (profile?.skills || []).map((s) => ({
-    name: s.name,
-    level: s.proficiency || 'Proficient'
-  }));
+  const skills = (profile?.skills || []).map((s) => {
+    const skillText = typeof s === 'string' ? s : (s.title || s.name || s.skill || s.skillName || '');
+    return {
+      name: skillText,
+      title: skillText,
+      level: s.level || s.proficiency || 'Proficient'
+    };
+  }).filter((s) => Boolean(s.name));
 
-  const projects = (profile?.projects || []).map((p, idx) => ({
-    id: p.id || `proj-${idx}`,
-    name: p.title || 'Project',
-    technologies: p.skills ? (Array.isArray(p.skills) ? p.skills : p.skills.split(',').map((item) => item.trim())) : [],
-    link: p.link || '',
-    startDate: p.startDate || '',
-    endDate: p.endDate || '',
-    description: p.description || '',
-    highlights: p.highlights || []
-  }));
+  const projects = (profile?.projects || []).map((p, idx) => {
+    const rawTech = p.technologies || p.skills || [];
+    const techArray = Array.isArray(rawTech)
+      ? rawTech
+      : (typeof rawTech === 'string' ? rawTech.split(',').map((item) => item.trim()).filter(Boolean) : []);
+    const projLink = p.projectLink || p.link || p.url || '';
+    return {
+      id: p.id || `proj-${idx}`,
+      name: p.title || p.name || 'Project',
+      title: p.title || p.name || 'Project',
+      technologies: techArray,
+      link: projLink,
+      projectLink: projLink,
+      startDate: p.startDate || '',
+      endDate: p.endDate || '',
+      description: p.description || '',
+      highlights: p.highlights || []
+    };
+  });
 
-  const certifications = (profile?.certifications || []).map((c, idx) => ({
-    id: c.id || `cert-${idx}`,
-    name: c.title || 'Certification',
-    issuer: c.organization || '',
-    date: c.issueDate || '',
-    url: c.certificateUrl || ''
-  }));
+  const certifications = (profile?.certifications || []).map((c, idx) => {
+    const certUrl = c.url || c.certificateUrl || c.link || '';
+    const issuerName = c.issuedBy || c.organization || c.issuer || '';
+    const issueDate = c.issueDate || c.date || '';
+    return {
+      id: c.id || `cert-${idx}`,
+      name: c.title || c.name || 'Certification',
+      title: c.title || c.name || 'Certification',
+      issuer: issuerName,
+      issuedBy: issuerName,
+      date: issueDate,
+      issueDate: issueDate,
+      url: certUrl,
+      link: certUrl
+    };
+  });
 
   const languages = (profile?.languages || []).map((l) => ({
     name: l.language || l.name,

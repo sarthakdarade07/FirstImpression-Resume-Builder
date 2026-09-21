@@ -2,7 +2,10 @@ package com.firstimpression.backend.templates.validation;
 
 import java.util.regex.Pattern;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+
+import com.firstimpression.backend.Exception.ServiceException;
 
 @Component
 public class TemplateCssValidator {
@@ -16,15 +19,15 @@ public class TemplateCssValidator {
 
 	public void validate(String cssText) {
 		if (cssText == null || cssText.trim().isEmpty()) {
-			throw new IllegalArgumentException("Template CSS cannot be empty");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Template CSS cannot be empty");
 		}
 
 		if (cssText.length() > MAX_CSS_LENGTH) {
-			throw new IllegalArgumentException("Template CSS exceeds maximum allowed length of " + MAX_CSS_LENGTH + " characters");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Template CSS exceeds maximum allowed length of " + MAX_CSS_LENGTH + " characters");
 		}
 
 		if (DANGEROUS_PATTERNS.matcher(cssText).find()) {
-			throw new IllegalArgumentException("Template CSS contains disallowed or dangerous syntax (e.g. scripts, javascript URLs, expressions, or @import)");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Template CSS contains disallowed or dangerous syntax (e.g. scripts, javascript URLs, expressions, or @import)");
 		}
 	}
 }

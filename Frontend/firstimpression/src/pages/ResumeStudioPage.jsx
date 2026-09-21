@@ -241,8 +241,11 @@ export default function ResumeStudioPage() {
 
       setLoadedResume(created);
       setResumeTitle(created?.title || title);
-      setSavedResumeData(populatedData);
-      setEditableData(populatedData);
+      dispatch(setSavedResume(populatedData));
+      dispatch(setCurrentResume(populatedData));
+      if (created?.id) {
+        dispatch(setResumeMetadata({ resumeId: created.id, resumeTitle: created.title || title, templateSlug: currentTemplate.slug }));
+      }
       setDataSourceType('saved');
       setIsEditingMode(true);
       setIsEditorOpen(true);
@@ -259,8 +262,8 @@ export default function ResumeStudioPage() {
     } catch (err) {
       console.warn('Failed to create resume from template via API:', err);
       const fallbackData = transformProfileToResumeData(null, authUser);
-      setSavedResumeData(fallbackData);
-      setEditableData(fallbackData);
+      dispatch(setSavedResume(fallbackData));
+      dispatch(setCurrentResume(fallbackData));
       setDataSourceType('saved');
       setIsEditingMode(true); 
       setIsEditorOpen(true);
@@ -304,11 +307,9 @@ export default function ResumeStudioPage() {
   }, []);
 
 
-   function onToggle(){
-    const temp = !isOpen;
-    setIsJdDrawerOpen(true);
-    setIsOpen(temp);
-   }
+  const handleToggleJdDrawer = () => {
+    setIsJdDrawerOpen((prev) => !prev);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans selection:bg-theme-red-start/20 selection:text-theme-red">
@@ -432,9 +433,9 @@ export default function ResumeStudioPage() {
                     onClick={() => {
                       setDataSourceType("user");
                       if (authUser) {
-                        setEditableData(
+                        dispatch(setCurrentResume(
                           transformProfileToResumeData(null, authUser),
-                        );
+                        ));
                       }
                     }}
                     className={`px-2.5 py-1 rounded-lg transition-all ${
@@ -448,7 +449,7 @@ export default function ResumeStudioPage() {
                     type="button"
                     onClick={() => {
                       setDataSourceType("sample");
-                      setEditableData(sampleResumeData);
+                      dispatch(setCurrentResume(sampleResumeData));
                     }}
                     className={`px-2.5 py-1 rounded-lg transition-all ${
                       dataSourceType === "sample"
@@ -565,7 +566,7 @@ export default function ResumeStudioPage() {
         {!isPreviewMode && (
           <button 
             type="button"
-             onClick={onToggle}
+            onClick={handleToggleJdDrawer}
             className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-orange-500 via-red-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white rounded-full shadow-2xl hover:shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all text-xs font-bold border border-white/20 print-hide backdrop-blur-md cursor-pointer group"
             title="Open Job Description Assistant">
             <div className="relative flex items-center justify-center">
@@ -586,7 +587,7 @@ export default function ResumeStudioPage() {
 
         <JdAssistantDrawer
           isOpen={isJdDrawerOpen}
-          onToggle={() => setIsJdDrawerOpen(!isJdDrawerOpen)}
+          onToggle={handleToggleJdDrawer}
           resumeId={resumeId || loadedResume?.id}
           currentResumeData={activeResumeData}
           onResumeAltered={(alteredData) => {

@@ -312,6 +312,11 @@ export default function ResumeEditorPanel({
       item.date = value;
       item.issueDate = value;
     }
+    if (field === 'url' || field === 'link' || field === 'certificateUrl') {
+      item.url = value;
+      item.link = value;
+      item.certificateUrl = value;
+    }
     updated[idx] = item;
     onChange({ ...resumeData, certifications: updated });
   };
@@ -320,9 +325,13 @@ export default function ResumeEditorPanel({
     const newCert = {
       id: `cert-${Date.now()}`,
       name: 'Certificate Name',
+      title: 'Certificate Name',
       issuer: 'Issuing Organization',
+      issuedBy: 'Issuing Organization',
       date: '2024',
-      url: ''
+      issueDate: '2024',
+      url: '',
+      link: ''
     };
     onChange({ ...resumeData, certifications: [newCert, ...certifications] });
   };
@@ -1063,9 +1072,9 @@ export default function ResumeEditorPanel({
                   const val = e.target.value;
                   if (!val) return;
                   if (val === '__all__') {
-                    const titles = profileSkills.map((s) => s.title?.trim()).filter(Boolean);
+                    const titles = profileSkills.map((s) => (s.title || s.name || s.skill || '').trim()).filter(Boolean);
                     if (skills.length > 0 && skills[0].items) {
-                      const existing = new Set(skills.flatMap((g) => g.items || []).map((s) => (typeof s === 'string' ? s.toLowerCase() : s.name?.toLowerCase())));
+                      const existing = new Set(skills.flatMap((g) => g.items || []).map((s) => (typeof s === 'string' ? s.toLowerCase() : (s.name || s.title || s.skill || '').toLowerCase())));
                       const newTitles = titles.filter((t) => !existing.has(t.toLowerCase()));
                       if (newTitles.length > 0) {
                         const updated = [...skills];
@@ -1073,23 +1082,27 @@ export default function ResumeEditorPanel({
                         onChange({ ...resumeData, skills: updated });
                       }
                     } else {
-                      const existing = new Set(skills.map((s) => (typeof s === 'string' ? s.toLowerCase() : s.name?.toLowerCase())));
+                      const existing = new Set(skills.map((s) => (typeof s === 'string' ? s.toLowerCase() : (s.name || s.title || s.skill || '').toLowerCase())));
                       const newSkills = profileSkills
-                        .filter((s) => s.title && !existing.has(s.title.toLowerCase()))
-                        .map((s) => ({ name: s.title, level: s.level || 'Proficient' }));
+                        .filter((s) => (s.title || s.name || s.skill) && !existing.has((s.title || s.name || s.skill).toLowerCase()))
+                        .map((s) => {
+                          const skText = s.title || s.name || s.skill || '';
+                          return { name: skText, title: skText, level: s.level || 'Proficient' };
+                        });
                       if (newSkills.length > 0) {
                         onChange({ ...resumeData, skills: [...skills, ...newSkills] });
                       }
                     }
                   } else {
                     const sk = profileSkills.find((item) => String(item.id) === val);
-                    if (sk && sk.title) {
+                    const skText = sk ? (sk.title || sk.name || sk.skill || '') : '';
+                    if (sk && skText) {
                       if (skills.length > 0 && skills[0].items) {
                         const updated = [...skills];
-                        updated[0] = { ...updated[0], items: [...updated[0].items, sk.title] };
+                        updated[0] = { ...updated[0], items: [...updated[0].items, skText] };
                         onChange({ ...resumeData, skills: updated });
                       } else {
-                        onChange({ ...resumeData, skills: [...skills, { name: sk.title, level: sk.level || 'Proficient' }] });
+                        onChange({ ...resumeData, skills: [...skills, { name: skText, title: skText, level: sk.level || 'Proficient' }] });
                       }
                     }
                   }
@@ -1104,11 +1117,14 @@ export default function ResumeEditorPanel({
                 {profileSkills.length > 1 && (
                   <option value="__all__">+ Add All from Profile ({profileSkills.length})</option>
                 )}
-                {profileSkills.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.title} ({s.level || 'Proficient'})
-                  </option>
-                ))}
+                {profileSkills.map((s) => {
+                  const label = s.title || s.name || s.skill || '';
+                  return (
+                    <option key={s.id || label} value={s.id}>
+                      {label} ({s.level || 'Proficient'})
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -1144,24 +1160,27 @@ export default function ResumeEditorPanel({
                 {skills.map((grp, gIdx) => (
                   <div key={gIdx} className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
                     <span className="text-xs font-bold text-gray-700">
-                      {grp.category || grp.name || `Group ${gIdx + 1}`}
+                      {grp.category || grp.name || grp.title || `Group ${gIdx + 1}`}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {(grp.items || []).map((sk, sIdx) => (
-                        <span
-                          key={sIdx}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-800 shadow-2xl"
-                        >
-                          <span>{typeof sk === 'string' ? sk : (sk.title || sk.name || '')}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveSkill(gIdx, sIdx)}
-                            className="text-gray-400 hover:text-red-500 transition"
+                      {(grp.items || []).map((sk, sIdx) => {
+                        const skText = typeof sk === 'string' ? sk : (sk.title || sk.name || sk.skill || sk.skillName || '');
+                        return (
+                          <span
+                            key={sIdx}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-800 shadow-2xl"
                           >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
+                            <span>{skText}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSkill(gIdx, sIdx)}
+                              className="text-gray-400 hover:text-red-500 transition"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -1170,7 +1189,7 @@ export default function ResumeEditorPanel({
               // Flat Skills
               <div className="flex flex-wrap gap-1.5">
                 {skills.map((sk, sIdx) => {
-                  const name = typeof sk === 'string' ? sk : (sk.title || sk.name || '');
+                  const name = typeof sk === 'string' ? sk : (sk.title || sk.name || sk.skill || sk.skillName || '');
                   return (
                     <span
                       key={sIdx}
@@ -1206,23 +1225,31 @@ export default function ResumeEditorPanel({
                     const val = e.target.value;
                     if (!val) return;
                     if (val === '__all__') {
-                      const toAdd = profileProjects.map((p) => ({
-                        id: `proj-${Date.now()}-${p.id || Math.random()}`,
-                        name: p.title || 'Project Name',
-                        link: p.projectLink || '',
-                        technologies: parseTech(p.technologies),
-                        description: p.description || '',
-                        highlights: []
-                      }));
+                      const toAdd = profileProjects.map((p) => {
+                        const pLink = p.projectLink || p.link || p.url || '';
+                        return {
+                          id: `proj-${Date.now()}-${p.id || Math.random()}`,
+                          name: p.title || 'Project Name',
+                          title: p.title || 'Project Name',
+                          link: pLink,
+                          projectLink: pLink,
+                          technologies: parseTech(p.technologies || p.skills),
+                          description: p.description || '',
+                          highlights: []
+                        };
+                      });
                       onChange({ ...resumeData, projects: [...toAdd, ...projects] });
                     } else {
                       const p = profileProjects.find((item) => String(item.id) === val);
                       if (p) {
+                        const pLink = p.projectLink || p.link || p.url || '';
                         const newProj = {
                           id: `proj-${Date.now()}`,
                           name: p.title || 'Project Name',
-                          link: p.projectLink || '',
-                          technologies: parseTech(p.technologies),
+                          title: p.title || 'Project Name',
+                          link: pLink,
+                          projectLink: pLink,
+                          technologies: parseTech(p.technologies || p.skills),
                           description: p.description || '',
                           highlights: []
                         };
@@ -1354,9 +1381,10 @@ export default function ResumeEditorPanel({
                       const toAdd = profileCertifications.map((c) => ({
                         id: `cert-${Date.now()}-${c.id || Math.random()}`,
                         name: c.title || 'Certificate Name',
-                        issuer: c.issuedBy || '',
+                        issuer: c.issuedBy || c.organization || '',
                         date: c.issueDate ? getYearOrDate(c.issueDate) : '',
-                        url: c.url || ''
+                        url: c.url || c.certificateUrl || '',
+                        link: c.url || c.certificateUrl || ''
                       }));
                       onChange({ ...resumeData, certifications: [...toAdd, ...certifications] });
                     } else {
@@ -1365,9 +1393,10 @@ export default function ResumeEditorPanel({
                         const newCert = {
                           id: `cert-${Date.now()}`,
                           name: c.title || 'Certificate Name',
-                          issuer: c.issuedBy || '',
+                          issuer: c.issuedBy || c.organization || '',
                           date: c.issueDate ? getYearOrDate(c.issueDate) : '',
-                          url: c.url || ''
+                          url: c.url || c.certificateUrl || '',
+                          link: c.url || c.certificateUrl || ''
                         };
                         onChange({ ...resumeData, certifications: [newCert, ...certifications] });
                       }
@@ -1442,6 +1471,16 @@ export default function ResumeEditorPanel({
                           placeholder="2023"
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Credential / Verification URL</label>
+                      <input
+                        type="text"
+                        value={cert.url !== undefined && cert.url !== null ? cert.url : (cert.link || '')}
+                        onChange={(e) => handleCertChange(idx, 'url', e.target.value)}
+                        className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs text-gray-800 outline-none focus:border-theme-red"
+                        placeholder="https://..."
+                      />
                     </div>
                   </div>
 

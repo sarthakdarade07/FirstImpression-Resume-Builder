@@ -3,13 +3,14 @@ package com.firstimpression.backend.security;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.firstimpression.backend.Exception.ServiceException;
 import com.firstimpression.backend.Repository.UsersRepository;
 import com.firstimpression.backend.model.Users;
 import com.firstimpression.backend.util.JwtUtil;
@@ -52,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     		try {
     			
     			if(jwtUtil.validateToken(token) && !jwtUtil.isTokenExpired(token)) {
-    				Users user = usersRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
+    				Users user = usersRepository.findById(userId).orElseThrow(() -> new ServiceException(HttpStatus.UNAUTHORIZED, "User Not Found"));
     				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
     				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
     				

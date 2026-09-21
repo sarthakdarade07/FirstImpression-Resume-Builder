@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.firstimpression.backend.Exception.ServiceException;
 import com.firstimpression.backend.Services.AuthService;
 import com.firstimpression.backend.Services.FileUploadService;
 import com.firstimpression.backend.dto.AuthResponse;
@@ -63,7 +64,7 @@ public class AuthController {
 		String email = req.get("email");
 		String otp = req.get("otp");
 		if (email == null || otp == null) {
-			throw new RuntimeException("Email and OTP are required.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Email and OTP are required.");
 		}
 		AuthResponse response = authService.verifyEmail(email, otp);
 		return ResponseEntity.ok(Map.of("message", "Email verified successfully!", "response", response));
@@ -143,7 +144,7 @@ public class AuthController {
 		if(Objects.nonNull(email)) {
 			authService.forgotPassword(email);
 		}else {
-			throw new RuntimeException("Email Required.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Email Required.");
 		}
 		return ResponseEntity.ok().body(Map.of("message","OTP sent to registered email."));
 
@@ -157,7 +158,7 @@ public class AuthController {
 		String newPassword = req.get("newPassword");
 
 		if (email == null || otp == null || newPassword == null) {
-			throw new RuntimeException("Email, OTP, and newPassword are required.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Email, OTP, and newPassword are required.");
 		}
            
 		AuthResponse response = authService.resetPassword(email, otp, newPassword);

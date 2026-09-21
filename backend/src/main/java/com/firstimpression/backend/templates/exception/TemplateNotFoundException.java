@@ -1,8 +1,12 @@
 package com.firstimpression.backend.templates.exception;
 
-public class TemplateNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+import com.firstimpression.backend.Exception.ServiceException;
+
+public class TemplateNotFoundException extends ServiceException {
 
 	public TemplateNotFoundException(String message) {
-		super(message);
+		super(HttpStatus.NOT_FOUND, message);
 	}
 }
+

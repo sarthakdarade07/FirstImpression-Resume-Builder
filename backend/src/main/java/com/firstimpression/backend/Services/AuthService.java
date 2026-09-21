@@ -8,11 +8,12 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.firstimpression.backend.Exception.ResourceExistsException;
+import com.firstimpression.backend.Exception.ServiceException;
 import com.firstimpression.backend.Repository.UsersRepository;
 import com.firstimpression.backend.dto.AuthResponse;
 
@@ -46,7 +47,7 @@ public class AuthService {
 		log.info("Inside AuthService : register() {}", request);
 
 		if (usersRepository.existsByEmail(request.getEmail())) {
-			throw new ResourceExistsException("Email already exists");
+			throw new ServiceException(HttpStatus.CONFLICT, "Email already exists");
 		}
 
 		Users newUser = toUsers(request);
@@ -93,21 +94,21 @@ public class AuthService {
 
 		} catch (Exception e) {
 			log.error("Error occurred while sending verification email: {}", e.getMessage());
-			throw new RuntimeException("Failed to send verification mail: ");
+			throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to send verification mail: ", e);
 		}
 	}
 
 	public AuthResponse verifyEmail(String email, String otp) {
 		log.info("Inside AuthService verifyEmail(): email={}, otp={}", email, otp);
 		Users user = usersRepository.findByEmailAndOtp(email, otp)
-				.orElseThrow(() -> new RuntimeException("Invalid OTP"));
+				.orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "Invalid OTP"));
 
 		if (user.getOtp() == null || LocalDateTime.now().isAfter(user.getOtpExpires())) {
-			throw new RuntimeException("OTP has expired.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "OTP has expired.");
 		}
 
 		if (!user.getOtp().equals(otp)) {
-			throw new RuntimeException("Wrong OTP.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Wrong OTP.");
 		}
 
 		user.setEmailVerified(true);
@@ -126,14 +127,14 @@ public class AuthService {
 	public AuthResponse login(LoginRequest req) {
 
 		Users existingUser = usersRepository.findByEmail(req.getEmail())
-				.orElseThrow(() -> new UsernameNotFoundException("Invalid Email"));
+				.orElseThrow(() -> new ServiceException(HttpStatus.UNAUTHORIZED, "Invalid Email"));
 
 		if (!passwordEncoder.matches(req.getPassword(), existingUser.getPassword())) {
-			throw new UsernameNotFoundException("Invalid Password");
+			throw new ServiceException(HttpStatus.UNAUTHORIZED, "Invalid Password");
 		}
 
 		if (!existingUser.isEmailVerified()) {
-			throw new RuntimeException("Please verify your email befor log in...");
+			throw new ServiceException(HttpStatus.FORBIDDEN, "Please verify your email befor log in...");
 		}
 
 		String jwt = jwtUtil.generateToken(existingUser.getId());
@@ -151,11 +152,11 @@ public class AuthService {
 
 		// 1.find user by email
 		Users user = usersRepository.findByEmail(email)
-				.orElseThrow(() -> new RuntimeException("This Email id not registered."));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "This Email id not registered."));
 
 		// 2. Check if email is verified
 		if (user.isEmailVerified()) {
-			throw new RuntimeException("Email is already Verififed.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Email is already Verififed.");
 		}
 
 		// 3. Set new OTP
@@ -182,7 +183,7 @@ public class AuthService {
 
 		// 1.verify if email id is registered
 		Users user = usersRepository.findByEmail(email)
-				.orElseThrow(() -> new RuntimeException("Email not registered."));
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Email not registered."));
 
 		// 2.generate otp & save it to user
 		String otp = OtpService.generateOtp();
@@ -208,14 +209,14 @@ public class AuthService {
 		log.info("Inside AuthService-resetPassword() for email: {}", email);
 
 		Users user = usersRepository.findByEmailAndOtp(email, otp)
-				.orElseThrow(() -> new RuntimeException("Invalid Email or OTP."));
+				.orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "Invalid Email or OTP."));
 
 		if (user.getOtp() == null || LocalDateTime.now().isAfter(user.getOtpExpires())) {
-			throw new RuntimeException("OTP has expired.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "OTP has expired.");
 		}
 
 		if (!user.getOtp().equals(otp)) {
-			throw new RuntimeException("Wrong OTP.");
+			throw new ServiceException(HttpStatus.BAD_REQUEST, "Wrong OTP.");
 		}
 
 		user.setOtp(null);

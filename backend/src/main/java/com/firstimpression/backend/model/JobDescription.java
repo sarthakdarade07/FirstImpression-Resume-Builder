@@ -44,6 +44,7 @@ public class JobDescription {
     private Users user;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "resume_id", referencedColumnName = "id")
     private Resume resume;
 

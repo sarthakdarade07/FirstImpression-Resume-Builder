@@ -43,46 +43,39 @@ public class GlobalExceptionHandler {
     	 
     } 
     
-    @ExceptionHandler(ResourceExistsException.class)
-    public ResponseEntity<Map<String,Object>> handleResourceExistsException(ResourceExistsException e){
-    	
-    	log.info("Inside GlobalExceptionHandler - handleResourceExistsException():{}",e.getMessage());
+    @ExceptionHandler(ServiceException.class)
+    public ResponseEntity<Map<String, Object>> handleServiceException(ServiceException ex) {
+        log.info("Inside GlobalExceptionHandler - handleServiceException(): status={}, message={}", ex.getStatus(), ex.getMessage());
 
-    	
-    	Map<String,Object> response = new HashMap<>();
-    	
-    	response.put("message", "Resource Exists");
-    	response.put("error", e.getMessage()); 
-    	
-    	return ResponseEntity.status(HttpStatus.CONFLICT).body(response); 
-    	
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", ex.getStatus().value());
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(ex.getStatus()).body(response); 
     }
     
     @ExceptionHandler(RuntimeException.class) 
     public ResponseEntity<Map<String,Object>> handleRunTimeException(RuntimeException e){
-    	
-    	log.info("Inside GlobalExceptionHandler - handleRunTimeException():{}",e.getMessage());
+    	log.error("Inside GlobalExceptionHandler - handleRunTimeException():{}", e.getMessage(), e);
 
     	Map<String,Object> response = new HashMap<>();
-    	
-    	response.put("message","Runtime error."); 
-    	response.put("error",e.getMessage());
+    	response.put("status", HttpStatus.BAD_REQUEST.value());
+    	response.put("message", "Runtime error."); 
+    	response.put("error", "Something went wrong...");
     	  
     	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
     
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String,Object>> handleGenericException(Exception e){
-    	
-    	log.info("Inside GlobalExceptionHandler - handleGenericException():{}",e.getMessage());
+    	log.error("Inside GlobalExceptionHandler - handleGenericException():{}", e.getMessage(), e);
 
     	Map<String,Object> response = new HashMap<>();
-    	
+    	response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
     	response.put("message", "Internal server error.");
-    	response.put("error", "An unexpected error occurred. Please try again later."+e.getMessage());
+    	response.put("error", "An unexpected error occurred. Please try again later.");
     	 
     	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-    
-   
 }
+

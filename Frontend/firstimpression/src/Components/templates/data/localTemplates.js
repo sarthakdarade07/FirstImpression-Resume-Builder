@@ -155,6 +155,14 @@ export const modernSidebarTemplate = {
 
 .template-modern-sidebar .modern-sidebar .candidate-contact a {
   color: #38bdf8;
+  text-decoration: none;
+  cursor: pointer !important;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.template-modern-sidebar .modern-sidebar .candidate-contact a:hover {
+  text-decoration: underline;
+  color: #7dd3fc;
 }
 
 .template-modern-sidebar .modern-sidebar .skill-tag {
@@ -226,9 +234,22 @@ export const modernSidebarTemplate = {
   font-weight: 600;
 }
 
-.template-modern-sidebar .timeline-title a {
+.template-modern-sidebar .timeline-title a,
+.template-modern-sidebar .project-link,
+.template-modern-sidebar .cert-link {
   color: #0284c7;
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer !important;
+  transition: color 0.15s ease;
+}
+
+.template-modern-sidebar .timeline-title a:hover,
+.template-modern-sidebar .project-link:hover,
+.template-modern-sidebar .cert-link:hover {
+  color: #0369a1;
+  text-decoration: underline;
 }
 
 .template-modern-sidebar .timeline-subtitle {
@@ -387,10 +408,13 @@ export const classicSingleColumnTemplate = {
 .template-classic-single-column .contact-item a {
   color: #111827;
   text-decoration: none;
+  cursor: pointer !important;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
 }
 
 .template-classic-single-column .contact-item a:hover {
   text-decoration: underline;
+  color: #1d4ed8;
 }
 
 .template-classic-single-column .classic-divider-heavy {
@@ -430,6 +454,24 @@ export const classicSingleColumnTemplate = {
   font-size: 13px;
   font-weight: 700;
   color: #111827;
+}
+
+.template-classic-single-column .timeline-title a,
+.template-classic-single-column .project-link,
+.template-classic-single-column .cert-link {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer !important;
+  transition: color 0.15s ease;
+}
+
+.template-classic-single-column .timeline-title a:hover,
+.template-classic-single-column .project-link:hover,
+.template-classic-single-column .cert-link:hover {
+  color: #1e40af;
+  text-decoration: underline;
 }
 
 .template-classic-single-column .timeline-subtitle {

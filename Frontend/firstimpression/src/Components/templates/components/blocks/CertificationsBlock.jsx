@@ -17,16 +17,22 @@ export default function CertificationsBlock({ config = {}, title }) {
           const name = cert.title || cert.name || '';
           const issuer = cert.issuedBy || cert.issuer || cert.organization || '';
           const date = cert.date || cert.issueDate || '';
-          const url = cert.url || cert.link || '';
+          const rawUrl = cert.url || cert.link || cert.certificateUrl || cert.credentialUrl || '';
+          const certUrl = rawUrl ? (rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`) : '';
 
           return (
             <div key={cert.id || index} className="timeline-item cert-item">
               <div className="timeline-header">
                 <div>
                   <span className="timeline-title">
-                    {url ? (
-                      <a href={url.startsWith('http') ? url : `https://${url}`} target="_blank" rel="noreferrer">
-                        {name}
+                    {certUrl ? (
+                      <a
+                        href={certUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="cert-link"
+                      >
+                        {name || rawUrl}
                       </a>
                     ) : (
                       name
