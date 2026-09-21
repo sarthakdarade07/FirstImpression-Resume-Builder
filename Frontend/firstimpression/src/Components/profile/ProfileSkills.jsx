@@ -89,11 +89,11 @@ const ProfileSkills = ({ skills = [], onSave, onDeleteModal }) => {
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-6 max-w-3xl">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {items.map((skill, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2 bg-white p-2.5 rounded-2xl border border-gray-100 shadow-sm"
+                className="min-w-0 flex items-center gap-2 bg-white p-2 sm:p-2.5 rounded-2xl border border-gray-200/80 shadow-xs hover:border-gray-300 transition-colors"
               >
                 <input
                   type="text"
@@ -101,12 +101,12 @@ const ProfileSkills = ({ skills = [], onSave, onDeleteModal }) => {
                   onChange={(e) => handleChange(index, 'title', e.target.value)}
                   placeholder="e.g. JavaScript"
                   required
-                  className="flex-1 px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm"
+                  className="min-w-0 flex-1 px-3 py-2 bg-gray-50/70 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm"
                 />
                 <select
                   value={skill.level}
                   onChange={(e) => handleChange(index, 'level', e.target.value)}
-                  className="w-32 px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-sm"
+                  className="shrink-0 w-28 sm:w-32 px-2.5 py-2 bg-gray-50/70 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--theme-red-start)] transition-all font-medium text-xs sm:text-sm cursor-pointer"
                 >
                   <option value="Beginner">Beginner</option>
                   <option value="Intermediate">Intermediate</option>
@@ -116,7 +116,7 @@ const ProfileSkills = ({ skills = [], onSave, onDeleteModal }) => {
                 <button
                   type="button"
                   onClick={() => handleRemove(index)}
-                  className="p-2.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors shrink-0"
+                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors shrink-0 cursor-pointer"
                   title="Remove Skill"
                 >
                   <Trash2 size={16} />

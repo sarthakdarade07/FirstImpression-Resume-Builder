@@ -420,7 +420,8 @@ export const modernSidebarTemplate = {
 
 @media print {
   .template-modern-sidebar.resume-page {
-    width: 210mm !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   .template-modern-sidebar .timeline-item {
     page-break-inside: avoid;
@@ -560,7 +561,7 @@ export const classicSingleColumnTemplate = {
   font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
   width: 210mm;
   min-height: 297mm;
-  padding: 40px 48px;
+  padding: 12mm 14mm;
   box-sizing: border-box;
   margin: 0 auto;
 }

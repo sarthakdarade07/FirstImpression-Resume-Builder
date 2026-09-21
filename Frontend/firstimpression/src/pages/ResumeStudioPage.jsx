@@ -100,6 +100,13 @@ export default function ResumeStudioPage() {
     }
   }, [previewParam, editParam]);
 
+  // Remove the active draft from localStorage on exit / close of editing
+  useEffect(() => {
+    return () => {
+      resumeApi.clearActiveDraft();
+    };
+  }, []);
+
   // Fetch resume if resumeId is in URL
   useEffect(() => {
     if (!resumeId) {
@@ -320,7 +327,10 @@ export default function ResumeStudioPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate(routes.DASHBOARD)}
+              onClick={() => {
+                resumeApi.clearActiveDraft();
+                navigate(routes.DASHBOARD);
+              }}
               className="p-1.5 sm:p-2 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 text-gray-500 hover:text-theme-red-start hover:border-theme-red-start/30 transition-all shadow-sm flex items-center justify-center shrink-0"
               title="Back to Dashboard">
               <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
@@ -328,7 +338,10 @@ export default function ResumeStudioPage() {
 
             <div
               className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate(routes.DASHBOARD)}>
+              onClick={() => {
+                resumeApi.clearActiveDraft();
+                navigate(routes.DASHBOARD);
+              }}>
               <img
                 src={logo}
                 alt="FirstImpression"
@@ -477,16 +490,6 @@ export default function ResumeStudioPage() {
               </button>
             )}
 
-            {/* Download PDF Button */}
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-black hover:to-gray-900 text-white text-xs font-semibold rounded-xl shadow-sm transition-all focus:ring-2 focus:ring-gray-900/20 cursor-pointer"
-              title="Download High-Resolution PDF">
-              <Download className="w-3.5 h-3.5 text-rose-400" />
-              <span>Download PDF</span>
-            </button>
-
             {/* Print Button */}
             <button
               type="button"
@@ -605,7 +608,10 @@ export default function ResumeStudioPage() {
         {isEditorOpen && (
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-xs z-30 lg:hidden transition-opacity print-hide"
-            onClick={() => setIsEditorOpen(false)}
+            onClick={() => {
+              setIsEditorOpen(false);
+              resumeApi.clearActiveDraft();
+            }}
             aria-hidden="true"
           />
         )}
@@ -617,13 +623,24 @@ export default function ResumeStudioPage() {
               resumeData={activeResumeData}
               onChange={(newData) => {
                 dispatch(setCurrentResume(newData));
+                const active = resumeApi.getActiveDraft();
+                if (active) {
+                  resumeApi.setActiveDraft({
+                    ...active,
+                    resumeDataJson: JSON.stringify(newData),
+                    updatedAt: new Date().toISOString()
+                  });
+                }
               }}
               resumeTitle={resumeTitle}
               onTitleChange={setResumeTitle}
               onSave={handleSaveResume}
               isSaving={isSaving}
               lastSaved={lastSaved}
-              onClose={() => setIsEditorOpen(false)}
+              onClose={() => {
+                setIsEditorOpen(false);
+                resumeApi.clearActiveDraft();
+              }}
             />
           </aside>
         )}

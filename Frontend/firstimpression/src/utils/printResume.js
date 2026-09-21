@@ -72,7 +72,7 @@ export function printResumeHTML(resumeElement, documentTitle = '') {
   const iframeWin = iframe.contentWindow || iframe.contentDocument;
   const doc = iframeWin.document || iframeWin;
 
-  // 4. Construct complete HTML with @page { margin: 0 } to suppress browser headers/footers
+  // 4. Construct complete HTML with consistent @page margins matching screen settings
   const fullDocumentHTML = `
     <!DOCTYPE html>
     <html lang="en">
@@ -85,7 +85,7 @@ export function printResumeHTML(resumeElement, documentTitle = '') {
 
           @page {
             size: A4 portrait;
-            margin: 0 !important; /* Suppresses browser date, title, URL, and page numbers */
+            margin: 0 !important; /* Suppresses browser headers & footers (time, date, website URL, page numbers) */
           }
           *, *::before, *::after {
             -webkit-print-color-adjust: exact !important;
@@ -95,7 +95,7 @@ export function printResumeHTML(resumeElement, documentTitle = '') {
           html, body {
             margin: 0 !important;
             padding: 0 !important;
-            width: 210mm !important;
+            width: 100% !important;
             height: auto !important;
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -109,12 +109,59 @@ export function printResumeHTML(resumeElement, documentTitle = '') {
             display: block !important;
             visibility: visible !important;
           }
+          .print-layout-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border-spacing: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            table-layout: fixed !important;
+          }
+          .print-layout-table thead {
+            display: table-header-group !important;
+          }
+          .print-layout-table tfoot {
+            display: table-footer-group !important;
+          }
+          .print-layout-table tbody {
+            display: table-row-group !important;
+          }
+          .print-header-spacer {
+            height: 12mm !important;
+            max-height: 12mm !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            font-size: 0 !important;
+            line-height: 0 !important;
+            background: transparent !important;
+          }
+          .print-footer-spacer {
+            height: 12mm !important;
+            max-height: 12mm !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            font-size: 0 !important;
+            line-height: 0 !important;
+            background: transparent !important;
+          }
+          .print-content-cell {
+            padding: 0 14mm !important;
+            margin: 0 !important;
+            border: none !important;
+            vertical-align: top !important;
+            background: transparent !important;
+          }
           .resume-screen-zoom-wrapper {
             transform: none !important;
             zoom: 1 !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
             padding: 0 !important;
-            width: 210mm !important;
+            width: 100% !important;
+            max-width: 100% !important;
             box-shadow: none !important;
             border: none !important;
             background: #ffffff !important;
@@ -124,13 +171,15 @@ export function printResumeHTML(resumeElement, documentTitle = '') {
           [class*="template-"] {
             transform: none !important;
             zoom: 1 !important;
-            margin: 0 auto !important;
-            padding: 10mm 12mm !important; /* Document margins inside page */
-            width: 210mm !important;
-            max-width: 210mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 0 !important;
+            height: auto !important;
             box-shadow: none !important;
             border: none !important;
-            background: #ffffff !important;
+            background: transparent !important;
             box-sizing: border-box !important;
           }
           .print-hide {
@@ -145,10 +194,45 @@ export function printResumeHTML(resumeElement, documentTitle = '') {
             break-after: avoid !important;
             page-break-after: avoid !important;
           }
+          .resume-divider, .classic-divider-heavy, .sidebar-header-block, .classic-header-block, hr {
+            break-after: avoid !important;
+            page-break-after: avoid !important;
+          }
+          .resume-container,
+          .resume-columns,
+          .resume-column,
+          .resume-section,
+          .resume-block,
+          .experience-list,
+          .education-list,
+          .modern-columns-layout,
+          .modern-main-content,
+          .resume-body-columns {
+            break-inside: auto !important;
+            page-break-inside: auto !important;
+          }
         </style>
       </head>
       <body>
-        ${resumeHTML}
+        <table class="print-layout-table">
+          <thead>
+            <tr>
+              <td class="print-header-spacer"></td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="print-content-cell">
+                ${resumeHTML}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="print-footer-spacer"></td>
+            </tr>
+          </tfoot>
+        </table>
       </body>
     </html>
   `;

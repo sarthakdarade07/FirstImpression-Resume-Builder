@@ -1,7 +1,7 @@
 import api from '../api/axios';
 import { sampleResumeData } from '../components/templates/data/sampleResumeData';
 
-const LOCAL_STORAGE_KEY = 'firstimpression_user_resumes';
+const ACTIVE_DRAFT_KEY = 'firstimpression_active_resume_draft';
 
 /**
  * Transforms backend ProfileResponse into universal Resume Data Schema
@@ -130,28 +130,60 @@ export function transformProfileToResumeData(profile = {}, user = {}) {
  */
 export const resumeApi = {
   /**
-   * Get all resumes for the current user
+   * Retrieves the current active draft from localStorage
+   */
+  getActiveDraft() {
+    try {
+      const stored = localStorage.getItem(ACTIVE_DRAFT_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Sets the current active draft in localStorage
+   */
+  setActiveDraft(resume) {
+    try {
+      if (resume) {
+        localStorage.setItem(ACTIVE_DRAFT_KEY, JSON.stringify(resume));
+      }
+    } catch (e) {
+      console.warn('[resumeApi] Failed to write active draft to local storage:', e);
+    }
+  },
+
+  /**
+   * Removes the active draft from localStorage upon closing editor
+   */
+  clearActiveDraft() {
+    try {
+      localStorage.removeItem(ACTIVE_DRAFT_KEY);
+      localStorage.removeItem('firstimpression_user_resumes');
+    } catch {}
+  },
+
+  /**
+   * Get all resumes for the current user (strictly database-backed)
    */
   async getUserResumes() {
     const token = localStorage.getItem('jwtToken');
     if (token) {
       try {
         const response = await api.get('/api/resumes');
-        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        if (response.data && Array.isArray(response.data)) {
           return response.data;
         }
       } catch (err) {
-        console.warn('[resumeApi] Backend /api/resumes failed, using local storage:', err.message);
+        console.warn('[resumeApi] Backend /api/resumes failed:', err.message);
       }
     }
-
-    // Fallback to local storage
+    // Clean up any legacy full-list storage
     try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
+      localStorage.removeItem('firstimpression_user_resumes');
+    } catch {}
+    return [];
   },
 
   /**
@@ -207,7 +239,7 @@ export const resumeApi = {
           createdResume = res.data;
         }
       } catch (err) {
-        console.warn('[resumeApi] Backend save failed, saving locally:', err.message);
+        console.warn('[resumeApi] Backend save failed, keeping current draft locally:', err.message);
       }
     }
 
@@ -223,14 +255,8 @@ export const resumeApi = {
       };
     }
 
-    // Also persist in localStorage for instant sync across tabs
-    try {
-      const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-      const updated = [createdResume, ...existing.filter((r) => r.id !== createdResume.id)];
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Failed to write to local storage', e);
-    }
+    // Store ONLY the current working resume in localStorage
+    this.setActiveDraft(createdResume);
 
     return createdResume;
   },
@@ -245,20 +271,20 @@ export const resumeApi = {
       try {
         const response = await api.get(`/api/resumes/${id}`);
         if (response.data) {
+          this.setActiveDraft(response.data);
           return response.data;
         }
       } catch (err) {
-        console.warn('[resumeApi] Backend getResumeById failed, checking local storage:', err.message);
+        console.warn('[resumeApi] Backend getResumeById failed, checking active draft:', err.message);
       }
     }
 
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const list = stored ? JSON.parse(stored) : [];
-      return list.find((r) => String(r.id) === String(id)) || null;
-    } catch {
-      return null;
+    // Check if the currently active draft matches
+    const active = this.getActiveDraft();
+    if (active && String(active.id) === String(id)) {
+      return active;
     }
+    return null;
   },
 
   /**
@@ -277,27 +303,20 @@ export const resumeApi = {
           updatedResume = response.data;
         }
       } catch (err) {
-        console.warn('[resumeApi] Backend updateResume failed, updating local storage:', err.message);
+        console.warn('[resumeApi] Backend updateResume failed, updating active draft:', err.message);
       }
     }
 
-    // Update local storage
-    try {
-      const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-      const index = existing.findIndex((r) => String(r.id) === String(id));
-      if (index !== -1) {
-        const item = existing[index];
-        const merged = {
-          ...item,
-          ...updates,
-          updatedAt: new Date().toISOString()
-        };
-        existing[index] = merged;
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existing));
-        if (!updatedResume) updatedResume = merged;
-      }
-    } catch (e) {
-      console.warn('Failed to update local storage', e);
+    // Update active draft if it matches the current resume being edited
+    const active = this.getActiveDraft();
+    if (active && String(active.id) === String(id)) {
+      const merged = {
+        ...active,
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      this.setActiveDraft(merged);
+      if (!updatedResume) updatedResume = merged;
     }
 
     return updatedResume;
@@ -317,11 +336,11 @@ export const resumeApi = {
       }
     }
 
-    try {
-      const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-      const filtered = existing.filter((r) => r.id !== id);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filtered));
-    } catch {}
+    // Clear active draft if the deleted resume was active
+    const active = this.getActiveDraft();
+    if (active && String(active.id) === String(id)) {
+      this.clearActiveDraft();
+    }
   },
 
   /**
