@@ -44,15 +44,14 @@ const DashboardNavbar = ({ activeTab = 'My Resumes', setActiveTab }) => {
           {/* Left Side: Logo & Tabs */}
           <div className="flex items-center gap-6 lg:gap-10">
             <div className="flex items-center gap-3 md:gap-4">
-              {location.pathname !== routes.DASHBOARD && location.pathname !== routes.TEMPLATES && (
                 <button 
-                  onClick={() => navigate(routes.DASHBOARD)}
+                  onClick={() => navigate(-1)}
                   className="p-1.5 md:p-2 bg-[var(--bg-surface-hover)] rounded-xl border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--theme-red-start)] hover:border-[var(--theme-red-start)]/30 hover:bg-[var(--theme-red-start)]/10 transition-all shadow-sm flex items-center justify-center shrink-0"
                   title="Back to Dashboard"
                 >
                   <ArrowLeft className="w-5 h-5 md:w-5 md:h-5" strokeWidth={2.5} />
                 </button>
-              )}
+            
               <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate(routes.DASHBOARD)}>
 
               <img 

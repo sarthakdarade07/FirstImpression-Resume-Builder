@@ -1,5 +1,5 @@
 import TemplateRenderer from './TemplateRenderer';
 
 export { TemplateRenderer };
-export default TemplateRenderer;
+export default TemplateRenderer; 
 

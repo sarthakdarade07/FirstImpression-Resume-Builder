@@ -329,7 +329,7 @@ export default function ResumeStudioPage() {
               type="button"
               onClick={() => {
                 resumeApi.clearActiveDraft();
-                navigate(routes.DASHBOARD);
+                navigate(-1);
               }}
               className="p-1.5 sm:p-2 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 text-gray-500 hover:text-theme-red-start hover:border-theme-red-start/30 transition-all shadow-sm flex items-center justify-center shrink-0"
               title="Back to Dashboard">

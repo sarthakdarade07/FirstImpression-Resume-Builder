@@ -65,6 +65,12 @@ public class Users {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Language> languages;
     
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL ,orphanRemoval = true)
+    private ResumeTailorUsage tailorUsage; 
+    
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL ,orphanRemoval = true)
+    private QueryUsage queryUsage;  
+    
   //  =============================================================
     
     

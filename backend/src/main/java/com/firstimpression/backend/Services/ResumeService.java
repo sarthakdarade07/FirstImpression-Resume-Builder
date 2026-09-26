@@ -38,6 +38,7 @@ public class ResumeService {
 	private final ProfileService profileService;
 	private final GeminiClientService geminiClientService;
 	private final ObjectMapper objectMapper;
+	private final UsageService usageService;
 
 	// Fields from JD JSON that actually matter for tailoring.
 	// Drops: company, additionalInfo, recruiter policy, EEO statement, location, employmentType.
@@ -116,6 +117,7 @@ public class ResumeService {
 		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
 				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
 
+		
 		if (request.getTitle() != null && !request.getTitle().isBlank()) {
 			resume.setTitle(request.getTitle());
 		}
@@ -129,6 +131,90 @@ public class ResumeService {
 		Resume updated = resumeRepository.save(resume);
 		return toResponse(updated);
 	}
+	
+	
+	public Map<String, Object> updateResume(Users user, String resumeId, String query) {
+		return updateResume(user, resumeId, query, null);
+	}
+
+	public Map<String, Object> updateResume(Users user, String resumeId, String query, String clientResumeDataJson) {
+
+		log.info("Inside ResumeService updating resume: {}, query: {}", resumeId, query);
+ 
+		// 1. Validate query
+		if (query == null || query.isBlank()) {
+			return Map.of("message", "Query is empty");
+		}
+		
+
+	    if(!usageService.queryAllowed(user))
+	    	          throw new ServiceException(HttpStatus.TOO_MANY_REQUESTS, "Query Limit Exceeds.Try after 24 Hours");
+
+		// 2. Fetch resume
+		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
+				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
+
+		// 3. Get original complete resume JSON (prefer live unsaved client JSON from Redux)
+		String originalResumeJson = (clientResumeDataJson != null && !clientResumeDataJson.isBlank())
+				? clientResumeDataJson
+				: resume.getResumeDataJson();
+
+		// 4. Create trimmed JSON for AI
+		String currentResumeJson = buildTrimmedResumeJson(originalResumeJson);
+
+		// 5. Build prompt
+		String prompt = buildUpdatePrompt(currentResumeJson, query);
+
+		log.info("Inside updateResume prompt: {}", prompt);
+
+		// 6. Call AI
+		long startTime = System.currentTimeMillis();
+
+		String geminiResponse = geminiClientService.generateContent(prompt);
+
+		log.info("AI resume update completed in {} ms", System.currentTimeMillis() - startTime);
+
+		log.info("Gemini response: {}", geminiResponse);
+
+		try {
+
+			// 7. Parse Gemini response
+			JsonNode updatedSections = sanitizeAndParseJson(geminiResponse);
+
+			// 8. Validate Gemini response
+			if (!updatedSections.isObject()) {
+				throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid AI response: expected JSON object");
+			}
+
+			// 9. Get message from Gemini
+			String message = updatedSections.get("message").asText();
+			
+			//if there is no update in resume just return the msg — no save, no preview
+			JsonNode resumeJson = updatedSections.get("resumeJson");
+
+			if (resumeJson == null || !resumeJson.isObject()) {
+			    return Map.of("message", message);
+			}
+
+			updatedSections = resumeJson;
+
+			// Return ONLY the altered sections JSON from Gemini (no personalInformation/educations)
+			String updatedResumeJson = objectMapper.writeValueAsString(updatedSections);
+
+			log.info("update resume preview built (not saved): {}", resumeId);
+
+			return Map.of("message", message, "updatedResumeDataJson", updatedResumeJson);
+
+		} catch (ServiceException e) {
+			throw e;
+		} catch (Exception e) {
+
+			log.error("Error while updating resume JSON", e);
+
+			throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update resume JSON", e);
+		}
+	}
+
 
 	public ResumeTailorResponse tailorResumeToJd(Users user, String resumeId) {
 		return tailorResumeToJd(user, resumeId, null);
@@ -140,7 +226,11 @@ public class ResumeService {
 		// 1. Fetch Resume
 		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
 				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
+		
 
+	    if(!usageService.tailorAllowed(user))
+	    	          throw new ServiceException(HttpStatus.TOO_MANY_REQUESTS, "Tailor Limit Exceeds.Try after 24 Hours");
+ 
 		// 2. Fetch Job Description associated with this resumeId (or most recent for
 		// user)
 		JobDescription jd = jobDescriptionRepository
@@ -221,84 +311,7 @@ public class ResumeService {
 				.updatedAt(resume.getUpdatedAt()).build();
 	}
 
-	public Map<String, Object> updateResume(Users user, String resumeId, String query) {
-		return updateResume(user, resumeId, query, null);
-	}
-
-	public Map<String, Object> updateResume(Users user, String resumeId, String query, String clientResumeDataJson) {
-
-		log.info("Inside ResumeService updating resume: {}, query: {}", resumeId, query);
-
-		// 1. Validate query
-		if (query == null || query.isBlank()) {
-			return Map.of("message", "Query is empty");
-		}
-
-		// 2. Fetch resume
-		Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
-				.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Resume not found with ID: " + resumeId));
-
-		// 3. Get original complete resume JSON (prefer live unsaved client JSON from Redux)
-		String originalResumeJson = (clientResumeDataJson != null && !clientResumeDataJson.isBlank())
-				? clientResumeDataJson
-				: resume.getResumeDataJson();
-
-		// 4. Create trimmed JSON for AI
-		String currentResumeJson = buildTrimmedResumeJson(originalResumeJson);
-
-		// 5. Build prompt
-		String prompt = buildUpdatePrompt(currentResumeJson, query);
-
-		log.info("Inside updateResume prompt: {}", prompt);
-
-		// 6. Call AI
-		long startTime = System.currentTimeMillis();
-
-		String geminiResponse = geminiClientService.generateContent(prompt);
-
-		log.info("AI resume update completed in {} ms", System.currentTimeMillis() - startTime);
-
-		log.info("Gemini response: {}", geminiResponse);
-
-		try {
-
-			// 7. Parse Gemini response
-			JsonNode updatedSections = sanitizeAndParseJson(geminiResponse);
-
-			// 8. Validate Gemini response
-			if (!updatedSections.isObject()) {
-				throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid AI response: expected JSON object");
-			}
-
-			// 9. Get message from Gemini
-			String message = updatedSections.get("message").asText();
-			
-			//if there is no update in resume just return the msg — no save, no preview
-			JsonNode resumeJson = updatedSections.get("resumeJson");
-
-			if (resumeJson == null || !resumeJson.isObject()) {
-			    return Map.of("message", message);
-			}
-
-			updatedSections = resumeJson;
-
-			// Return ONLY the altered sections JSON from Gemini (no personalInformation/educations)
-			String updatedResumeJson = objectMapper.writeValueAsString(updatedSections);
-
-			log.info("update resume preview built (not saved): {}", resumeId);
-
-			return Map.of("message", message, "updatedResumeDataJson", updatedResumeJson);
-
-		} catch (ServiceException e) {
-			throw e;
-		} catch (Exception e) {
-
-			log.error("Error while updating resume JSON", e);
-
-			throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update resume JSON", e);
-		}
-	}
-
+	
 	/**
 	 * Strips JD JSON down to only the fields relevant for tailoring.
 	 */
