@@ -29,9 +29,8 @@ import {
   useTemplateRenderer,
   sampleResumeData
 } from '../components/templates';
-import { ResumeEditorPanel, JdAssistantDrawer } from '../components/resume';
+import { ResumeEditorPanel } from '../components/resume';
 import { resumeApi, transformProfileToResumeData } from '../services/resumeApi';
-import { mergeResumeData } from '../utils/resumeMerger';
 import { printResumeHTML } from '../utils/printResume';
 import {
   setCurrentResume,
@@ -40,6 +39,7 @@ import {
   setResumeMetadata,
   setResumeTitle as setReduxResumeTitle,
 } from '../redux/slices/resumeSlice';
+import ResumeAssistantDrawer from '../Components/resume/ResumeAssistantDrawer';
 
 export default function ResumeStudioPage() {
   const navigate = useNavigate();
@@ -588,7 +588,7 @@ export default function ResumeStudioPage() {
           </button>
         )}
 
-        <JdAssistantDrawer
+        <ResumeAssistantDrawer
           isOpen={isJdDrawerOpen}
           onToggle={handleToggleJdDrawer}
           resumeId={resumeId || loadedResume?.id}

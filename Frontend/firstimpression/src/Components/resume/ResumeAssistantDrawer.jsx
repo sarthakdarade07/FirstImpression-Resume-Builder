@@ -206,7 +206,7 @@ const GenericFeatureRenderer = ({ data, showAll = false }) => {
   );
 };
 
-export default function JdAssistantDrawer({
+export default function ResumeAssistantDrawer({
   isOpen = false,
   onToggle,
   resumeId = null,
@@ -325,7 +325,6 @@ export default function JdAssistantDrawer({
     try {
       const result = await updateResume(resumeId, cleanQuery, activeResumePayload);
 
-          console.log("response of query:", result)
       if (result?.updatedResumeData && onResumeAltered) {
         onResumeAltered(result.updatedResumeData);
       }

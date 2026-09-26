@@ -65,7 +65,6 @@ const useJDAssistant = ({ resumeId = null }) => {
       }
 
       const response = await dispatch(uploadJdThunk(formData)).unwrap();
-      console.log("In useJDAssistant{} response of upload jd",response);
       const jd = response;
 
       let parsedFeatures = null;

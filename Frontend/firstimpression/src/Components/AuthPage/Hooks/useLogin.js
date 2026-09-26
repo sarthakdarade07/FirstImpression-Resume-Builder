@@ -59,7 +59,6 @@ const useLogin = ({ onNavigateToForgotPassword }) => {
         }),
       ).unwrap();
         
-      console.log("reached here");
        const redirectUrl = searchParams.get("redirect");
         const destination = redirectUrl
           ? decodeURIComponent(redirectUrl)

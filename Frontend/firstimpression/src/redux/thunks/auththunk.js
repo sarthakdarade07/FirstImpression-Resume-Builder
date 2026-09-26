@@ -10,7 +10,6 @@ export const loginUser = createAsyncThunk(
 
         try {
             const data = await loginUserApi(email, password);
-            console.log("login", data.response);
             const user = {
                 id: data.response.id,
                 name: data.response.name,
