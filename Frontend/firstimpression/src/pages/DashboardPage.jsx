@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-import DashboardLayout from "../components/dashboard/DashboardLayout";
+import DashboardLayout from "../Components/dashboard/DashboardLayout";
 
 import MyResumesTab from "./MyResumes";
 import TemplatesTab from "./Templates";

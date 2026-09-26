@@ -1,6 +1,6 @@
 import React from "react";
 import CommonOtpVerification from "../CommonOtpVerification";
-import { verifyOtpApi, forgotPasswordApi } from "./services/authService";
+import { verifyOtpApi, forgotPasswordApi } from "./Services/authService";
 
 /**
  * OtpVerification (Forgot Password Flow)

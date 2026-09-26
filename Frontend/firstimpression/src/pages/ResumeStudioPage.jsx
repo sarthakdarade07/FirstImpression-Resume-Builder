@@ -22,14 +22,14 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { routes } from '../routes/routes';
-import logo from '../assets/promotional/Firstimpression_icon_logo_copy.png';
-import UserMenu from '../components/dashboard/UserMenu';
+import logo from '../Assets/promotional/Firstimpression_icon_logo_copy.png';
+import UserMenu from '../Components/dashboard/UserMenu';
 import {
   TemplateRenderer,
   useTemplateRenderer,
   sampleResumeData
-} from '../components/templates';
-import { ResumeEditorPanel } from '../components/resume';
+} from '../Components/templates';
+import { ResumeEditorPanel } from '../Components/resume';
 import { resumeApi, transformProfileToResumeData } from '../services/resumeApi';
 import { printResumeHTML } from '../utils/printResume';
 import {

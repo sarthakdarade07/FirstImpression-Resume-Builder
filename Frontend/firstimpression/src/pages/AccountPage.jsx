@@ -1,9 +1,9 @@
 import React from 'react';
 import { Shield, Key, Eye, EyeOff, Loader2, CheckCircle2, ArrowRight, Settings, Code, Lock, ArrowUpCircle, CreditCard, FileText } from 'lucide-react';
-import SidebarPageLayout from '../components/dashboard/SidebarPageLayout';
-import FailedToast from '../components/notifications/FailedToast';
-import SuccessToast from '../components/notifications/SuccessToast';
-import useAccount from '../components/accountPage/hooks/useAccount';
+import SidebarPageLayout from '../Components/dashboard/SidebarPageLayout';
+import FailedToast from '../Components/notifications/FailedToast';
+import SuccessToast from '../Components/notifications/SuccessToast';
+import useAccount from '../Components/accountPage/hooks/useAccount';
 
 const AccountPage = () => {
   const {

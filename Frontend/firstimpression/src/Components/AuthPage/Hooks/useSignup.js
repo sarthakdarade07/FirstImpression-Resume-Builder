@@ -5,7 +5,7 @@ import {
   signUpApi,
   verifyEmailOtpApi,
   resendVerificationApi,
-} from "../services/authService";
+} from "../Services/authService";
 import { setCredentials } from "../../../redux/slices/authslice";
 import { routes } from "../../../routes/routes";
 

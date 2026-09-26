@@ -1,10 +1,10 @@
 import React, { useRef, useEffect } from "react";
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, RefreshCw } from "lucide-react";
-import mainImage from "../../assets/promotional/loginpage.webp";
-import icon_logo from "../../assets/promotional/Firstimpression_icon_logo.webp";
+import mainImage from "../../Assets/promotional/loginpage.webp";
+import icon_logo from "../../Assets/promotional/Firstimpression_icon_logo.webp";
 import SuccessToast from "../notifications/SuccessToast";
 import FailedToast from "../notifications/FailedToast";
-import useForgotPassword from "./hooks/useForgotPassword";
+import useForgotPassword from "./Hooks/useForgotPassword";
 import { routes } from "../../routes/routes";
 
 /**

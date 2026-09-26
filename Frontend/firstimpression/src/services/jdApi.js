@@ -1,4 +1,4 @@
-import api from '../api/axios';
+import api from '../apis/axios';
 
 export const jdApi = {
   /**

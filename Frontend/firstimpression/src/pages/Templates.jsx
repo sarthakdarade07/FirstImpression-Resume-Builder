@@ -4,8 +4,8 @@ import { ArrowRight, Check, Eye, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-import { templateApi } from "../components/templates/services/templateApi";
-import { fallbackTemplates } from "../components/templates/data/localTemplates";
+import { templateApi } from "../Components/templates/services/templateApi";
+import { fallbackTemplates } from "../Components/templates/data/localTemplates";
 import { resumeApi } from "../services/resumeApi";
 import { routes } from "../routes/routes";
 

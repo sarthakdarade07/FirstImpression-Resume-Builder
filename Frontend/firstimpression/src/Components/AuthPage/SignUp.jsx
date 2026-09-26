@@ -2,10 +2,10 @@ import React from "react";
 import { UserPlus, EyeOff, LogIn, ChevronDown, Eye, RefreshCw } from "lucide-react";
 import SuccessToast from "../notifications/SuccessToast";
 import FailedToast from "../notifications/FailedToast";
-import mainImage from "../../assets/promotional/loginpage.webp";
-import icon_logo from "../../assets/promotional/Firstimpression_icon_logo.webp";
+import mainImage from "../../Assets/promotional/loginpage.webp";
+import icon_logo from "../../Assets/promotional/Firstimpression_icon_logo.webp";
 import { HashLink } from "react-router-hash-link";
-import useSignUp from "./hooks/useSignup";
+import useSignUp from "./Hooks/useSignup";
 import CommonOtpVerification from "../CommonOtpVerification";
 import { routes } from "../../routes/routes";
 

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Volume2, VolumeX, Play, Pause, Sparkles, CheckCircle2 } from "lucide-react";
-import processVideo from "../../assets/videos/first impression process.mp4";
+import processVideo from "../../Assets/videos/first impression process.mp4";
 
 export default function FeaturesVideoSection() {
   const videoRef = useRef(null);

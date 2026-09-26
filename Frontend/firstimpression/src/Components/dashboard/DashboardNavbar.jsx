@@ -3,7 +3,7 @@ import { Bell, Search, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserMenu from './UserMenu';
-import logo from "../../assets/promotional/Firstimpression_icon_logo_copy.png"; 
+import logo from "../../Assets/promotional/Firstimpression_icon_logo_copy.png"; 
 import { useSelector } from 'react-redux';
 import { routes } from '../../routes/routes';
 

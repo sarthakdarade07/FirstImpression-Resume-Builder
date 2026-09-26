@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { forgotPasswordApi, resetPasswordApi } from "../services/authService";
+import { forgotPasswordApi, resetPasswordApi } from "../Services/authService";
 import { setCredentials } from "../../../redux/slices/authslice";
 import { routes } from "../../../routes/routes";
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { verifyOtpApi } from "../services/authService";
+import { verifyOtpApi } from "../Services/authService";
 
 /**
  * useOtpVerification

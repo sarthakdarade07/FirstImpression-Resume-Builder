@@ -1,14 +1,14 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../Components/Navbar";
+import Footer from "../Components/Footer";
 import {
   AboutHero,
   AboutStorySection,
   AboutValuesSection,
   AboutStatsSection,
   AboutCtaSection
-} from "../components/about";
+} from "../Components/about";
 
 export default function AboutUsPage() {
   useEffect(() => {
