@@ -1,7 +1,7 @@
-import api from '../api/axios';
-import { sampleResumeData } from '../components/templates/data/sampleResumeData';
+import api from "../apis/axios";
+import { sampleResumeData } from "../components/templates/data/sampleResumeData";
 
-const ACTIVE_DRAFT_KEY = 'firstimpression_active_resume_draft';
+const ACTIVE_DRAFT_KEY = "firstimpression_active_resume_draft";
 
 /**
  * Transforms backend ProfileResponse into universal Resume Data Schema
@@ -13,12 +13,12 @@ export function transformProfileToResumeData(profile = {}, user = {}) {
   const pi = profile?.personalInformation || {};
   const auth = profile?.authResponse || {};
 
-  const name = pi.name || user?.name || auth.name || 'Your Name';
-  const role = pi.role || 'Professional';
-  const email = pi.email || user?.email || auth.email || '';
-  const phone = pi.phoneNo || pi.phone || '';
-  const location = pi.location || '';
-  const photoUrl = pi.photoUrl || user?.profileImageUrl || '';
+  const name = pi.name || user?.name || auth.name || "Your Name";
+  const role = pi.role || "Professional";
+  const email = pi.email || user?.email || auth.email || "";
+  const phone = pi.phoneNo || pi.phone || "";
+  const location = pi.location || "";
+  const photoUrl = pi.photoUrl || user?.profileImageUrl || "";
 
   const summary =
     profile?.summary ||
@@ -27,76 +27,86 @@ export function transformProfileToResumeData(profile = {}, user = {}) {
 
   const experience = (profile?.workExperiences || []).map((exp, idx) => ({
     id: exp.id || `exp-${idx}`,
-    role: exp.role || 'Role',
-    company: exp.organization || 'Company',
-    location: exp.location || '',
-    startDate: exp.startDate || '',
-    endDate: exp.currentWorking ? 'Present' : exp.endDate || '',
+    role: exp.role || "Role",
+    company: exp.organization || "Company",
+    location: exp.location || "",
+    startDate: exp.startDate || "",
+    endDate: exp.currentWorking ? "Present" : exp.endDate || "",
     current: Boolean(exp.currentWorking),
-    description: exp.jobDescription || '',
-    highlights: exp.highlights || []
+    description: exp.jobDescription || "",
+    highlights: exp.highlights || [],
   }));
 
   const education = (profile?.educations || []).map((edu, idx) => ({
     id: edu.id || `edu-${idx}`,
-    institution: edu.institution || 'University',
-    degree: edu.degree || '',
-    fieldOfStudy: edu.fieldOfStudy || '',
-    startDate: edu.startDate || '',
-    endDate: edu.currentlyStudying ? 'Present' : edu.endDate || '',
-    gpa: edu.score ? `${edu.score} ${edu.scoreType || ''}`.trim() : '',
-    highlights: edu.highlights || []
+    institution: edu.institution || "University",
+    degree: edu.degree || "",
+    fieldOfStudy: edu.fieldOfStudy || "",
+    startDate: edu.startDate || "",
+    endDate: edu.currentlyStudying ? "Present" : edu.endDate || "",
+    gpa: edu.score ? `${edu.score} ${edu.scoreType || ""}`.trim() : "",
+    highlights: edu.highlights || [],
   }));
 
-  const skills = (profile?.skills || []).map((s) => {
-    const skillText = typeof s === 'string' ? s : (s.title || s.name || s.skill || s.skillName || '');
-    return {
-      name: skillText,
-      title: skillText,
-      level: s.level || s.proficiency || 'Proficient'
-    };
-  }).filter((s) => Boolean(s.name));
+  const skills = (profile?.skills || [])
+    .map((s) => {
+      const skillText =
+        typeof s === "string"
+          ? s
+          : s.title || s.name || s.skill || s.skillName || "";
+      return {
+        name: skillText,
+        title: skillText,
+        level: s.level || s.proficiency || "Proficient",
+      };
+    })
+    .filter((s) => Boolean(s.name));
 
   const projects = (profile?.projects || []).map((p, idx) => {
     const rawTech = p.technologies || p.skills || [];
     const techArray = Array.isArray(rawTech)
       ? rawTech
-      : (typeof rawTech === 'string' ? rawTech.split(',').map((item) => item.trim()).filter(Boolean) : []);
-    const projLink = p.projectLink || p.link || p.url || '';
+      : typeof rawTech === "string"
+        ? rawTech
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : [];
+    const projLink = p.projectLink || p.link || p.url || "";
     return {
       id: p.id || `proj-${idx}`,
-      name: p.title || p.name || 'Project',
-      title: p.title || p.name || 'Project',
+      name: p.title || p.name || "Project",
+      title: p.title || p.name || "Project",
       technologies: techArray,
       link: projLink,
       projectLink: projLink,
-      startDate: p.startDate || '',
-      endDate: p.endDate || '',
-      description: p.description || '',
-      highlights: p.highlights || []
+      startDate: p.startDate || "",
+      endDate: p.endDate || "",
+      description: p.description || "",
+      highlights: p.highlights || [],
     };
   });
 
   const certifications = (profile?.certifications || []).map((c, idx) => {
-    const certUrl = c.url || c.certificateUrl || c.link || '';
-    const issuerName = c.issuedBy || c.organization || c.issuer || '';
-    const issueDate = c.issueDate || c.date || '';
+    const certUrl = c.url || c.certificateUrl || c.link || "";
+    const issuerName = c.issuedBy || c.organization || c.issuer || "";
+    const issueDate = c.issueDate || c.date || "";
     return {
       id: c.id || `cert-${idx}`,
-      name: c.title || c.name || 'Certification',
-      title: c.title || c.name || 'Certification',
+      name: c.title || c.name || "Certification",
+      title: c.title || c.name || "Certification",
       issuer: issuerName,
       issuedBy: issuerName,
       date: issueDate,
       issueDate: issueDate,
       url: certUrl,
-      link: certUrl
+      link: certUrl,
     };
   });
 
   const languages = (profile?.languages || []).map((l) => ({
     name: l.language || l.name,
-    level: l.proficiency || l.level || 'Fluent'
+    level: l.proficiency || l.level || "Fluent",
   }));
 
   // If user profile is empty, merge with sensible defaults from sample
@@ -109,19 +119,23 @@ export function transformProfileToResumeData(profile = {}, user = {}) {
       email,
       phone,
       location,
-      linkedin: pi.linkedinUrl || '',
-      github: pi.githubUrl || '',
-      website: pi.portfolioUrl || '',
+      linkedin: pi.linkedinUrl || "",
+      github: pi.githubUrl || "",
+      website: pi.portfolioUrl || "",
       photoUrl,
-      avatar: photoUrl
+      avatar: photoUrl,
     },
     summary,
-    experience: experience.length > 0 ? experience : sampleResumeData.experience,
+    experience:
+      experience.length > 0 ? experience : sampleResumeData.experience,
     education: education.length > 0 ? education : sampleResumeData.education,
     skills: skills.length > 0 ? skills : sampleResumeData.skills,
     projects: projects.length > 0 ? projects : sampleResumeData.projects,
-    certifications: certifications.length > 0 ? certifications : sampleResumeData.certifications,
-    languages: languages.length > 0 ? languages : sampleResumeData.languages
+    certifications:
+      certifications.length > 0
+        ? certifications
+        : sampleResumeData.certifications,
+    languages: languages.length > 0 ? languages : sampleResumeData.languages,
   };
 }
 
@@ -150,7 +164,10 @@ export const resumeApi = {
         localStorage.setItem(ACTIVE_DRAFT_KEY, JSON.stringify(resume));
       }
     } catch (e) {
-      console.warn('[resumeApi] Failed to write active draft to local storage:', e);
+      console.warn(
+        "[resumeApi] Failed to write active draft to local storage:",
+        e,
+      );
     }
   },
 
@@ -160,7 +177,7 @@ export const resumeApi = {
   clearActiveDraft() {
     try {
       localStorage.removeItem(ACTIVE_DRAFT_KEY);
-      localStorage.removeItem('firstimpression_user_resumes');
+      localStorage.removeItem("firstimpression_user_resumes");
     } catch {}
   },
 
@@ -168,20 +185,20 @@ export const resumeApi = {
    * Get all resumes for the current user (strictly database-backed)
    */
   async getUserResumes() {
-    const token = localStorage.getItem('jwtToken');
+    const token = localStorage.getItem("jwtToken");
     if (token) {
       try {
-        const response = await api.get('/api/resumes');
+        const response = await api.get("/api/resumes");
         if (response.data && Array.isArray(response.data)) {
           return response.data;
         }
       } catch (err) {
-        console.warn('[resumeApi] Backend /api/resumes failed:', err.message);
+        console.warn("[resumeApi] Backend /api/resumes failed:", err.message);
       }
     }
     // Clean up any legacy full-list storage
     try {
-      localStorage.removeItem('firstimpression_user_resumes');
+      localStorage.removeItem("firstimpression_user_resumes");
     } catch {}
     return [];
   },
@@ -192,9 +209,14 @@ export const resumeApi = {
    * @param {string} [customTitle]
    * @param {Object} [customResumeData] - Optional pre-existing or customized resume data to seed with
    */
-  async createResumeFromTemplate(template, customTitle, customResumeData = null, user = null) {
+  async createResumeFromTemplate(
+    template,
+    customTitle,
+    customResumeData = null,
+    user = null,
+  ) {
     let resumeData = null;
-    const token = localStorage.getItem('jwtToken');
+    const token = localStorage.getItem("jwtToken");
 
     if (customResumeData) {
       resumeData = JSON.parse(JSON.stringify(customResumeData));
@@ -204,17 +226,20 @@ export const resumeApi = {
 
       if (!authUser) {
         try {
-          const rawUser = localStorage.getItem('user');
+          const rawUser = localStorage.getItem("user");
           if (rawUser) authUser = JSON.parse(rawUser);
         } catch {}
       }
 
       if (token) {
         try {
-          const profileRes = await api.get('/api/profile/get-profile');
+          const profileRes = await api.get("/api/profile/get-profile");
           profileData = profileRes.data?.message || profileRes.data;
         } catch (err) {
-          console.warn('[resumeApi] Failed to fetch profile from backend, using available user details:', err.message);
+          console.warn(
+            "[resumeApi] Failed to fetch profile from backend, using available user details:",
+            err.message,
+          );
         }
       }
 
@@ -227,19 +252,22 @@ export const resumeApi = {
     const resumePayload = {
       templateSlug: template.slug,
       title,
-      resumeDataJson: JSON.stringify(resumeData)
+      resumeDataJson: JSON.stringify(resumeData),
     };
 
     let createdResume = null;
 
     if (token) {
       try {
-        const res = await api.post('/api/resumes', resumePayload);
+        const res = await api.post("/api/resumes", resumePayload);
         if (res.data) {
           createdResume = res.data;
         }
       } catch (err) {
-        console.warn('[resumeApi] Backend save failed, keeping current draft locally:', err.message);
+        console.warn(
+          "[resumeApi] Backend save failed, keeping current draft locally:",
+          err.message,
+        );
       }
     }
 
@@ -251,7 +279,7 @@ export const resumeApi = {
         title,
         resumeDataJson: JSON.stringify(resumeData),
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
     }
 
@@ -266,7 +294,7 @@ export const resumeApi = {
    * @param {string} id
    */
   async getResumeById(id) {
-    const token = localStorage.getItem('jwtToken');
+    const token = localStorage.getItem("jwtToken");
     if (token) {
       try {
         const response = await api.get(`/api/resumes/${id}`);
@@ -275,7 +303,10 @@ export const resumeApi = {
           return response.data;
         }
       } catch (err) {
-        console.warn('[resumeApi] Backend getResumeById failed, checking active draft:', err.message);
+        console.warn(
+          "[resumeApi] Backend getResumeById failed, checking active draft:",
+          err.message,
+        );
       }
     }
 
@@ -293,7 +324,7 @@ export const resumeApi = {
    * @param {Object} updates - { title, resumeDataJson, templateSlug }
    */
   async updateResume(id, updates) {
-    const token = localStorage.getItem('jwtToken');
+    const token = localStorage.getItem("jwtToken");
     let updatedResume = null;
 
     if (token) {
@@ -303,7 +334,10 @@ export const resumeApi = {
           updatedResume = response.data;
         }
       } catch (err) {
-        console.warn('[resumeApi] Backend updateResume failed, updating active draft:', err.message);
+        console.warn(
+          "[resumeApi] Backend updateResume failed, updating active draft:",
+          err.message,
+        );
       }
     }
 
@@ -313,7 +347,7 @@ export const resumeApi = {
       const merged = {
         ...active,
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
       this.setActiveDraft(merged);
       if (!updatedResume) updatedResume = merged;
@@ -327,12 +361,12 @@ export const resumeApi = {
    * @param {string} id
    */
   async deleteResume(id) {
-    const token = localStorage.getItem('jwtToken');
+    const token = localStorage.getItem("jwtToken");
     if (token) {
       try {
         await api.delete(`/api/resumes/${id}`);
       } catch (err) {
-        console.warn('[resumeApi] Backend delete failed:', err.message);
+        console.warn("[resumeApi] Backend delete failed:", err.message);
       }
     }
 
@@ -350,13 +384,13 @@ export const resumeApi = {
    */
   async tailorResumeToJd(id) {
     if (!id) {
-      throw new Error('Resume ID is required to tailor resume.');
+      throw new Error("Resume ID is required to tailor resume.");
     }
     const response = await api.post(`/api/resumes/${id}/tailor-to-jd`, null, {
-      timeout: 180000
+      timeout: 180000,
     });
     return response.data;
-  }
+  },
 };
 
 export default resumeApi;

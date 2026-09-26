@@ -1,5 +1,8 @@
-import api from '../../../api/axios';
-import { fallbackTemplates, modernSidebarTemplate } from '../data/localTemplates';
+import api from "../../../apis/axios";
+import {
+  fallbackTemplates,
+  modernSidebarTemplate,
+} from "../data/localTemplates";
 
 /**
  * Service for fetching and interacting with backend resume templates.
@@ -12,7 +15,7 @@ export const templateApi = {
   async getTemplates(page = 0, size = 20) {
     try {
       const response = await api.get(`/api/templates`, {
-        params: { page, size }
+        params: { page, size },
       });
       // Response might be a Spring Page or List
       const data = response.data;
@@ -24,7 +27,10 @@ export const templateApi = {
       }
       return fallbackTemplates;
     } catch (error) {
-      console.warn('[templateApi] Failed to fetch templates from backend, using local fallbacks:', error.message);
+      console.warn(
+        "[templateApi] Failed to fetch templates from backend, using local fallbacks:",
+        error.message,
+      );
       return fallbackTemplates;
     }
   },
@@ -45,11 +51,14 @@ export const templateApi = {
         return response.data;
       }
     } catch (error) {
-      console.warn(`[templateApi] Failed to fetch template '${slug}' from backend, using local fallback:`, error.message);
+      console.warn(
+        `[templateApi] Failed to fetch template '${slug}' from backend, using local fallback:`,
+        error.message,
+      );
     }
 
     // Fallback to local
-    const matched = fallbackTemplates.find(t => t.slug === slug);
+    const matched = fallbackTemplates.find((t) => t.slug === slug);
     return matched || modernSidebarTemplate;
   },
 
@@ -60,11 +69,11 @@ export const templateApi = {
   async getTemplateHtml(slug) {
     try {
       const response = await api.get(`/api/templates/${slug}/html`, {
-        responseType: 'text'
+        responseType: "text",
       });
       return response.data;
     } catch (error) {
-      const matched = fallbackTemplates.find(t => t.slug === slug);
+      const matched = fallbackTemplates.find((t) => t.slug === slug);
       return matched?.htmlCode || matched?.html || null;
     }
   },
@@ -76,14 +85,14 @@ export const templateApi = {
   async getTemplateCss(slug) {
     try {
       const response = await api.get(`/api/templates/${slug}/css`, {
-        responseType: 'text'
+        responseType: "text",
       });
       return response.data;
     } catch (error) {
-      const matched = fallbackTemplates.find(t => t.slug === slug);
-      return matched?.cssText || matched?.css || '';
+      const matched = fallbackTemplates.find((t) => t.slug === slug);
+      return matched?.cssText || matched?.css || "";
     }
-  }
+  },
 };
 
 export default templateApi;

@@ -1,18 +1,18 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../api/axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../../apis/axios";
 
 export const fetchEducationMetadata = createAsyncThunk(
-  'metadata/fetchEducationMetadata',
+  "metadata/fetchEducationMetadata",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/api/profile/education-metadata');
+      const response = await api.get("/api/profile/education-metadata");
       return response.data;
     } catch (err) {
       // Fallback: try individual endpoints
       try {
         const [eduRes, scoreRes] = await Promise.all([
-          api.get('/api/profile/education-types'),
-          api.get('/api/profile/score-types'),
+          api.get("/api/profile/education-types"),
+          api.get("/api/profile/score-types"),
         ]);
         return {
           educationTypes: eduRes.data,
@@ -22,7 +22,7 @@ export const fetchEducationMetadata = createAsyncThunk(
         return rejectWithValue(err.response?.data?.message || err.message);
       }
     }
-  }
+  },
 );
 
 const initialState = {
@@ -46,7 +46,7 @@ const initialState = {
 };
 
 const metadataSlice = createSlice({
-  name: 'metadata',
+  name: "metadata",
   initialState,
   reducers: {
     setEducationTypes: (state, action) => {
@@ -64,10 +64,16 @@ const metadataSlice = createSlice({
       })
       .addCase(fetchEducationMetadata.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.payload?.educationTypes && action.payload.educationTypes.length > 0) {
+        if (
+          action.payload?.educationTypes &&
+          action.payload.educationTypes.length > 0
+        ) {
           state.educationTypes = action.payload.educationTypes;
         }
-        if (action.payload?.scoreTypes && action.payload.scoreTypes.length > 0) {
+        if (
+          action.payload?.scoreTypes &&
+          action.payload.scoreTypes.length > 0
+        ) {
           state.scoreTypes = action.payload.scoreTypes;
         }
       })

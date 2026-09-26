@@ -1,11 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import api from "../../../api/axios";
-import { uploadJd as uploadJdThunk, fetchJdByResumeId } from "../../../redux/thunks/jdThunk";
+import api from "../../../apis/axios";
+import {
+  uploadJd as uploadJdThunk,
+  fetchJdByResumeId,
+} from "../../../redux/thunks/jdThunk";
 
 const useJDAssistant = ({ resumeId = null }) => {
   const dispatch = useDispatch();
-  const { jd: reduxJd, fetching: isFetchingJd } = useSelector((state) => state.jd);
+  const { jd: reduxJd, fetching: isFetchingJd } = useSelector(
+    (state) => state.jd,
+  );
 
   const [isUploading, setIsUploading] = useState(false);
   const [isQuerying, setIsQuerying] = useState(false);
@@ -17,7 +22,7 @@ const useJDAssistant = ({ resumeId = null }) => {
   const [tailorResult, setTailorResult] = useState(null);
 
   useEffect(() => {
-    if (resumeId) { 
+    if (resumeId) {
       dispatch(fetchJdByResumeId(resumeId));
     }
   }, [dispatch, resumeId]);
@@ -32,7 +37,6 @@ const useJDAssistant = ({ resumeId = null }) => {
       return null;
     }
   }, [reduxJd]);
-
 
   const uploadJd = async ({ inputMode, selectedFile, pastedText }) => {
     setUploadError(null);
@@ -102,7 +106,7 @@ const useJDAssistant = ({ resumeId = null }) => {
 
   const updateResume = async (resumeId, query, currentResumeData = null) => {
     setQueryError(null);
- 
+
     const cleanQuery = query?.trim();
 
     if (!resumeId) {
@@ -120,13 +124,19 @@ const useJDAssistant = ({ resumeId = null }) => {
     setIsQuerying(true);
 
     try {
-      const response = await api.post(`/api/resumes/${resumeId}/update-resume`, {
-        query: cleanQuery,
-        resumeDataJson: currentResumeData ? JSON.stringify(currentResumeData) : null,
-      }, {
-        timeout: 120000,
-      });
-        
+      const response = await api.post(
+        `/api/resumes/${resumeId}/update-resume`,
+        {
+          query: cleanQuery,
+          resumeDataJson: currentResumeData
+            ? JSON.stringify(currentResumeData)
+            : null,
+        },
+        {
+          timeout: 120000,
+        },
+      );
+
       // Use preview data returned directly — no extra fetch, no auto-save
       const parsedData = response.data?.updatedResumeDataJson
         ? JSON.parse(response.data.updatedResumeDataJson)
@@ -144,7 +154,8 @@ const useJDAssistant = ({ resumeId = null }) => {
         error.message ||
         "Query failed";
 
-      const message = typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg);
+      const message =
+        typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg);
 
       setQueryError(message);
 
@@ -154,7 +165,10 @@ const useJDAssistant = ({ resumeId = null }) => {
     }
   };
 
-  const tailorResume = async (targetResumeId = null, currentResumeData = null) => {
+  const tailorResume = async (
+    targetResumeId = null,
+    currentResumeData = null,
+  ) => {
     setTailorError(null);
     const activeId = targetResumeId || resumeId;
     if (!activeId) {
@@ -165,11 +179,17 @@ const useJDAssistant = ({ resumeId = null }) => {
 
     setIsTailoring(true);
     try {
-      const response = await api.post(`/api/resumes/${activeId}/tailor-to-jd`, {
-        resumeDataJson: currentResumeData ? JSON.stringify(currentResumeData) : null,
-      }, {
-        timeout: 180000,
-      });
+      const response = await api.post(
+        `/api/resumes/${activeId}/tailor-to-jd`,
+        {
+          resumeDataJson: currentResumeData
+            ? JSON.stringify(currentResumeData)
+            : null,
+        },
+        {
+          timeout: 180000,
+        },
+      );
       const result = response.data;
       setTailorResult(result);
       return result;

@@ -1,4 +1,4 @@
-import api from "../../../api/axios";
+import api from "../../../apis/axios";
 
 /**
  * User Login API
@@ -97,6 +97,3 @@ export const resendVerificationApi = async (email) => {
 };
 
 export const changePasswordApi = resetPasswordApi;
-
-
-
