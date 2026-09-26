@@ -13,7 +13,7 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests
 
-
+ 
 # =========================
 # Runtime stage
 # =========================
