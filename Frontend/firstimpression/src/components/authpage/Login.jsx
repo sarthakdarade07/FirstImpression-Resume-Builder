@@ -2,12 +2,12 @@
 
 import React from "react";
 import { User, EyeOff, Eye, LogIn, ChevronDown } from "lucide-react";
-import mainImage from "../../Assets/promotional/loginpage.webp";
-import icon_logo from "../../Assets/promotional/Firstimpression_icon_logo.webp";
+import mainImage from "../../assets/promotional/loginpage.webp";
+import icon_logo from "../../assets/promotional/Firstimpression_icon_logo.webp";
 import SuccessToast from "../notifications/SuccessToast";
 import FailedToast from "../notifications/FailedToast";
 import { HashLink } from "react-router-hash-link";
-import useLogin from "./Hooks/useLogin";
+import useLogin from "./hooks/useLogin";
 import { routes } from "../../routes/routes";
 
 

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import { routes } from "../routes/routes";
 import { useSelector } from "react-redux";
-import logo from "../Assets/promotional/Firstimpression_icon_logo_copy.png";
+import logo from "../assets/promotional/Firstimpression_icon_logo_copy.png";
 
 const Navbar = ({ isSplashFinished = true }) => {
   const [isScrolled, setIsScrolled] = useState(false);

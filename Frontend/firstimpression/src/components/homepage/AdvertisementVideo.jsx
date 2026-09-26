@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Volume2, VolumeX, Play } from 'lucide-react';
-import HeroVideo from "../../Assets/videos/firstimpression-ad-video.webm";
+import HeroVideo from "../../assets/videos/firstimpression-ad-video.webm";
 
 const AdvertisementVideo = () => {
   const videoRef = useRef(null);

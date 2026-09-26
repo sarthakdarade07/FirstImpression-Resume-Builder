@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import Navbar from "../Components/Navbar";
-import Hero from "../Components/homePage/Hero";
-import SplashScreen from "../Components/homePage/SplashScreen";
-import Template from "../Components/homePage/Template";
-import AdvertisementVideo from "../Components/homePage/AdvertisementVideo";
-import CallToAction from "../Components/homePage/CallToAction";
-import Footer from "../Components/Footer";
+import Navbar from "../components/Navbar";
+import Hero from "../components/homepage/Hero";
+import SplashScreen from "../components/homepage/SplashScreen";
+import Template from "../components/homepage/Template";
+import AdvertisementVideo from "../components/homepage/AdvertisementVideo";
+import CallToAction from "../components/homepage/CallToAction";
+import Footer from "../components/Footer";
 
 export default function HomePage() {
   const [isSplashFinished, setIsSplashFinished] = useState(

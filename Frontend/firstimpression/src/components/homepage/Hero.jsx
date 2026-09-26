@@ -2,7 +2,7 @@ import React from "react";
 import { Sparkles, ArrowRight, FileText, Target, Briefcase, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import HeroVideo from "../../Assets/videos/firstimpression-hero_video.webm";
+import HeroVideo from "../../assets/videos/firstimpression-hero_video.webm";
 import { routes } from "../../routes/routes";
 
 export default function Hero({ isSplashFinished = true }) {

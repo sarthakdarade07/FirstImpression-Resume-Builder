@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "../Assets/promotional/Firstimpression_icon_logo_copy.webp";
+import logo from "../assets/promotional/Firstimpression_icon_logo_copy.webp";
 
 export default function CentralLoader({
   message = "Loading...",

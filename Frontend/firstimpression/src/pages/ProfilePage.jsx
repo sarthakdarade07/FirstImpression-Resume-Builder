@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Loader2, User, Briefcase, GraduationCap, Wrench, Globe, Folder, Award, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import DashboardLayout from '../Components/dashboard/DashboardLayout';
-import SidebarPageLayout from '../Components/dashboard/SidebarPageLayout';
-import DeleteConfirmModal from '../Components/modals/DeleteConfirmModal';
-import { useProfileLogic } from '../Components/profile/hooks/useProfileLogic';
+import DashboardLayout from '../components/dashboard/DashboardLayout';
+import SidebarPageLayout from '../components/dashboard/SidebarPageLayout';
+import DeleteConfirmModal from '../components/modals/DeleteConfirmModal';
+import { useProfileLogic } from '../components/profile/hooks/useProfileLogic';
 
-import ProfileBasicInfo from '../Components/profile/ProfileBasicInfo';
-import ProfileExperience from '../Components/profile/ProfileExperience';
-import ProfileEducation from '../Components/profile/ProfileEducation';
-import ProfileSkills from '../Components/profile/ProfileSkills';
-import ProfileProjects from '../Components/profile/ProfileProjects';
-import ProfileLanguages from '../Components/profile/ProfileLanguages';
-import ProfileCertifications from '../Components/profile/ProfileCertifications';
+import ProfileBasicInfo from '../components/profile/ProfileBasicInfo';
+import ProfileExperience from '../components/profile/ProfileExperience';
+import ProfileEducation from '../components/profile/ProfileEducation';
+import ProfileSkills from '../components/profile/ProfileSkills';
+import ProfileProjects from '../components/profile/ProfileProjects';
+import ProfileLanguages from '../components/profile/ProfileLanguages';
+import ProfileCertifications from '../components/profile/ProfileCertifications';
 
 const ProfilePage = () => {
   const {

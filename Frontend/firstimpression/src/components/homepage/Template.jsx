@@ -2,10 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, LayoutTemplate, Briefcase, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Resume1 from '../../Assets/images/reume/reume-1.webp';
-import Resume2 from '../../Assets/images/reume/reume-2.webp';
-import Resume3 from '../../Assets/images/reume/reume-3.webp';
-import Resume4 from '../../Assets/images/reume/reume-4.webp';
+import Resume1 from '../../assets/images/reume/reume-1.webp';
+import Resume2 from '../../assets/images/reume/reume-2.webp';
+import Resume3 from '../../assets/images/reume/reume-3.webp';
+import Resume4 from '../../assets/images/reume/reume-4.webp';
 import { routes } from '../../routes/routes';
 
 const Template = () => {

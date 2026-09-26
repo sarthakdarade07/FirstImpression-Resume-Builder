@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import notFoundImage from "../Assets/images/page_404.png";
+import notFoundImage from "../assets/images/page_404.png";
 
 const Page404 = () => {
   const navigate = useNavigate();

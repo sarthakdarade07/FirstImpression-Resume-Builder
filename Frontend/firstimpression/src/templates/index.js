@@ -1,1 +1,1 @@
-export * from '../Components/templates';
+export * from '../components/templates';

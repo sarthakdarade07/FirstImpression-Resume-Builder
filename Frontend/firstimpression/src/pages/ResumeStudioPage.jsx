@@ -22,14 +22,14 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { routes } from '../routes/routes';
-import logo from '../Assets/promotional/Firstimpression_icon_logo_copy.png';
-import UserMenu from '../Components/dashboard/UserMenu';
+import logo from '../assets/promotional/Firstimpression_icon_logo_copy.png';
+import UserMenu from '../components/dashboard/UserMenu';
 import {
   TemplateRenderer,
   useTemplateRenderer,
   sampleResumeData
-} from '../Components/templates';
-import { ResumeEditorPanel } from '../Components/resume';
+} from '../components/templates';
+import { ResumeEditorPanel } from '../components/resume';
 import { resumeApi, transformProfileToResumeData } from '../services/resumeApi';
 import { printResumeHTML } from '../utils/printResume';
 import {
@@ -39,7 +39,7 @@ import {
   setResumeMetadata,
   setResumeTitle as setReduxResumeTitle,
 } from '../redux/slices/resumeSlice';
-import ResumeAssistantDrawer from '../Components/resume/ResumeAssistantDrawer';
+import ResumeAssistantDrawer from '../components/resume/ResumeAssistantDrawer';
 
 export default function ResumeStudioPage() {
   const navigate = useNavigate();

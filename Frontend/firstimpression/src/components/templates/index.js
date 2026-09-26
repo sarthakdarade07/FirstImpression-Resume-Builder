@@ -1,4 +1,4 @@
-export { TemplateRenderer, default } from './components/TemplateRenderer/TemplateRenderer';
+export { TemplateRenderer, default } from './components/templaterenderer/TemplateRenderer';
 export * from './models/Template';
 export * from './engine/HtmlTemplateEngine';
 export * from './engine/TemplateCssManager';

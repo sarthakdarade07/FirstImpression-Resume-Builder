@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
-import Login from "../Components/AuthPage/Login";
-import SignUp from "../Components/AuthPage/SignUp";
-import ForgotPassword from "../Components/AuthPage/ForgotPassword";
-import OtpVerification from "../Components/AuthPage/OtpVerification";
-import ChangePassword from "../Components/AuthPage/ChangePassword";
-import SuccessToast from "../Components/notifications/SuccessToast";
+import Login from "../components/authpage/Login";
+import SignUp from "../components/authpage/SignUp";
+import ForgotPassword from "../components/authpage/ForgotPassword";
+import OtpVerification from "../components/authpage/OtpVerification";
+import ChangePassword from "../components/authpage/ChangePassword";
+import SuccessToast from "../components/notifications/SuccessToast";
 import { routes } from "../routes/routes";
 
 const AuthPage = () => {
