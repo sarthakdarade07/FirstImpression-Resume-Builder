@@ -33,6 +33,7 @@ public class UsageService {
 			   usage.setUsedCount(1);
 			   usage.setUsedAt(now);
 			   usage.setUser(user);
+			   usage.setStatus(1);
 			   resumeUsageRespo.save(usage);
 			   return true;
 		  } 
