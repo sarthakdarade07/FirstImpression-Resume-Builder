@@ -30,13 +30,13 @@ const DashboardPage = ({ initialTab }) => {
     setActiveTab(getInitialTab());
   }, [location.pathname, location.state, initialTab]);
 
-  useEffect(() => {
-    jobApi.getDailyJob().then((data) => {
-      if (data) {
-        setDailyJob(data);
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   jobApi.getDailyJob().then((data) => {
+  //     if (data) {
+  //       setDailyJob(data);
+  //     }
+  //   });
+  // }, []);
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
