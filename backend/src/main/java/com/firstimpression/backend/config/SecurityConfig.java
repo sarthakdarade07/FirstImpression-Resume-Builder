@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 
 public class SecurityConfig {
  
-	@Value("${FRONTEND_BASE_URL}")
+	@Value("${FRONTEND_BASE_URL:http://localhost:5173}")
 	private String frontendBaseurl;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	
@@ -50,6 +50,7 @@ public class SecurityConfig {
 				   "/api/auth/verify-otp",
 				   "/api/auth/reset-password",
 				   "/actuator/**",
+				   "/error",
 				   "/api/templates/**",
 				   "/api/jobs/**").permitAll()
 				   .anyRequest().authenticated())
@@ -62,16 +63,18 @@ public class SecurityConfig {
 	@Bean 
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration corsConfiguration = new CorsConfiguration();
-		corsConfiguration.setAllowedOrigins(Arrays.asList(
-			"http://localhost:3000", "http://localhost:5173",
-			 "https://*.vercel.app",   // Matches any Vercel preview or production deploy
-              frontendBaseurl != null ? frontendBaseurl.trim().replaceAll("/+$", "") : ""
+		corsConfiguration.setAllowedOriginPatterns(Arrays.asList(
+			"http://localhost:3000",
+			"http://localhost:5173",
+			"https://*.vercel.app",
+			frontendBaseurl != null && !frontendBaseurl.isBlank() ? frontendBaseurl.trim().replaceAll("/+$", "") : ""
 		));
-		corsConfiguration.setAllowedMethods(Arrays.asList("GET","PUT","POST","PATCH","DELETE","OPTIONS")); 
+		corsConfiguration.setAllowedMethods(Arrays.asList("GET", "PUT", "POST", "PATCH", "DELETE", "OPTIONS")); 
 		corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
+		corsConfiguration.setAllowCredentials(true);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		
 		source.registerCorsConfiguration("/**", corsConfiguration);
-            return source;
+		return source;
 	}
 }
