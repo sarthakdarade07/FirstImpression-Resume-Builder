@@ -52,7 +52,6 @@ public class SecurityConfig {
 				   "/actuator/**",
 				   "/api/templates/**",
 				   "/api/jobs/**").permitAll()
-				   .requestMatchers(org.springframework.http.HttpMethod.GET ).permitAll()
 				   .anyRequest().authenticated())
 		   .sessionManagement(session -> session.sessionCreationPolicy((SessionCreationPolicy.STATELESS)))
 		   .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
