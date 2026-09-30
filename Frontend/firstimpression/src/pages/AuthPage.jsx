@@ -25,10 +25,18 @@ const AuthPage = () => {
   
   const currentView = getView();
 
-  // State to pass between forgot password steps
-  // We can initialize from location state if navigated with state, or fallback to local state
+  // State to pass between steps (or read from location.state)
   const [resetEmail, setResetEmail] = useState(location.state?.email || "");
-  const [resetToken, setResetToken] = useState(location.state?.token || "");
+  const [resetOtp, setResetOtp] = useState(location.state?.otp || "");
+
+  useEffect(() => {
+    if (location.state?.email) {
+      setResetEmail(location.state.email);
+    }
+    if (location.state?.otp) {
+      setResetOtp(location.state.otp);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -103,12 +111,21 @@ const AuthPage = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="absolute inset-0 w-full h-full">
             <OtpVerification
-              email={resetEmail}
-              onBackToLogin={() => navigate(routes.SIGNIN)}
-              onNavigateToChangePassword={(email, token) => {
-                setResetEmail(email);
-                setResetToken(token);
-                navigate(routes.CHANGE_PASSWORD, { state: { email, token } });
+              email={location.state?.email || resetEmail}
+              mode={location.state?.mode || "verify-email"}
+              onBack={() => navigate(routes.SIGNIN)}
+              onSuccess={(data) => {
+                if (location.state?.mode === "forgot-password" || data?.otp) {
+                  const targetEmail = data?.email || location.state?.email || resetEmail;
+                  const targetOtp = data?.otp || "";
+                  setResetEmail(targetEmail);
+                  setResetOtp(targetOtp);
+                  navigate(routes.CHANGE_PASSWORD, {
+                    state: { email: targetEmail, otp: targetOtp },
+                  });
+                } else {
+                  navigate(routes.SIGNIN + "?verified=true");
+                }
               }}
             />
           </motion.div>
@@ -123,8 +140,8 @@ const AuthPage = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="absolute inset-0 w-full h-full">
             <ChangePassword
-              email={resetEmail}
-              resetToken={resetToken}
+              email={location.state?.email || resetEmail}
+              otp={location.state?.otp || resetOtp}
               onBackToLogin={() => navigate(routes.SIGNIN)}
               redirectTo={routes.DASHBOARD}
             />

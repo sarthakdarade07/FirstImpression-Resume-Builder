@@ -5,3 +5,5 @@ application-secrets.properties
 application-secreate.properties
 *secret*.properties
 *secreate*.properties
+.properties
+application.properties

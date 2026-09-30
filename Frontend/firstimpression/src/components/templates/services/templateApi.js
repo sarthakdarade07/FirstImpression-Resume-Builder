@@ -2,7 +2,7 @@ import api from "../../../apis/axios";
 import {
   fallbackTemplates,
   modernSidebarTemplate,
-} from "../data/localTemplates";
+} from "../components/data/localTemplates";
 
 /**
  * Service for fetching and interacting with backend resume templates.

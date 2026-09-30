@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import { templateApi } from "../components/templates/services/templateApi";
-import { fallbackTemplates } from "../components/templates/data/localTemplates";
+import { fallbackTemplates } from "../components/templates/components/data/localTemplates";
 import { resumeApi } from "../services/resumeApi";
 import { routes } from "../routes/routes";
 

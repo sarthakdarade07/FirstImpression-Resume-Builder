@@ -94,16 +94,7 @@ const UserMenu = ({ isOpen, onClose}) => {
                 label: "Help & Support",
                 desc: "FAQs and contact",
               },
-              {
-                icon: FileText,
-                label: "More Option 1",
-                desc: "Just for scrolling",
-              },
-              {
-                icon: FileText,
-                label: "More Option 2",
-                desc: "Just for scrolling",
-              },
+             
             ].map((item, idx) => (
               <button
                 key={idx}

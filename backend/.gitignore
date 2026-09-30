@@ -8,6 +8,8 @@ application-secreate.properties
 *secret*.properties
 *secreate*.properties
 !*.example
+.properties
+application.properties
 
 ### STS ###
 .apt_generated

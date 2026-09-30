@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { loginUser } from "../../../redux/thunks/auththunk";
 import { routes } from "../../../routes/routes";
+import { resendVerificationApi } from "../services/authService";
 
 const useLogin = ({ onNavigateToForgotPassword }) => {
   const dispatch = useDispatch();
@@ -59,19 +60,39 @@ const useLogin = ({ onNavigateToForgotPassword }) => {
         }),
       ).unwrap();
         
-       const redirectUrl = searchParams.get("redirect");
-        const destination = redirectUrl
-          ? decodeURIComponent(redirectUrl)
-          : routes.DASHBOARD;
+      const redirectUrl = searchParams.get("redirect");
+      const destination = redirectUrl
+        ? decodeURIComponent(redirectUrl)
+        : routes.DASHBOARD;
 
       setMsg("Login successful!");
       setShowToast(true);
-     navigate(destination, { replace: true });
+      navigate(destination, { replace: true });
 
     } catch (errorMessage) {
+      const errorStr =
+        typeof errorMessage === "string" ? errorMessage.toLowerCase() : "";
+ 
+      if (
+        errorStr.includes("verify your email") ||
+        errorStr.includes("verify email")
+      ) {
+        // 1. Automatically trigger the OTP email
+        try {
+          await resendVerificationApi(emailOrUsername);
+        } catch (err) {
+          console.warn("Could not auto-send verification OTP:", err);
+        }
+        // 2. Redirect to OTP verification page
+        navigate(routes.OTP, {
+          state: {
+            email: emailOrUsername,
+            mode: "verify-email",
+          },
+        });
+        return;
+      }
       setError(errorMessage || "Invalid credentials");
-    } finally {
-      setIsLoading(false);
     }
   };
 

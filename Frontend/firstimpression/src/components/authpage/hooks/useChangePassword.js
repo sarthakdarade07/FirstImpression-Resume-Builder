@@ -15,13 +15,15 @@ import { routes } from "../../../routes/routes";
  * - success / error / loading state
  *
  * @param {Object} params
- * @param {string} params.resetToken - token used to authorize the password reset
+ * @param {string} params.email - email associated with the password reset
+ * @param {string} params.otp - OTP used to authorize the password reset
  * @param {Function} [params.onBackToLogin] - callback to navigate back to login
  * @param {Function} [params.onSuccess] - optional callback invoked after a successful reset
  * @param {string} [params.redirectTo=routes.DASHBOARD] - path to redirect to upon password reset
  */
 const useChangePassword = ({
-  resetToken,
+  email,
+  otp,
   onBackToLogin,
   onSuccess,
   redirectTo = routes.DASHBOARD,
@@ -51,11 +53,16 @@ const useChangePassword = ({
       return;
     }
 
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
     try {
-      const data = await changePasswordApi(resetToken, newPassword);
+      const data = await changePasswordApi(email, otp, newPassword);
       if (data?.response) {
         const user = {
           id: data.response.id,

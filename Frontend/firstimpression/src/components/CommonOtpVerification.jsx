@@ -1,36 +1,54 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import mainImage from "../assets/promotional/loginpage.webp";
 import icon_logo from "../assets/promotional/Firstimpression_icon_logo.webp";
 import SuccessToast from "./notifications/SuccessToast";
 import FailedToast from "./notifications/FailedToast";
+import { routes } from "../routes/routes";
+import { setCredentials } from "../redux/slices/authslice";
+import {
+  verifyEmailOtpApi,
+  resendVerificationApi,
+  verifyOtpApi,
+  forgotPasswordApi,
+} from "./authpage/services/authService";
 
 /**
  * CommonOtpVerification
- * Reusable OTP verification component for both Registration Email Verification and Forgot Password flows.
+ * Generic reusable OTP verification component supporting:
+ * - mode="verify-email": Registration & unverified login activation
+ * - mode="forgot-password": Password reset OTP verification
  *
  * @param {Object} props
  * @param {string} props.email - Email address to verify
- * @param {string} [props.title="Verify OTP"] - Title for the screen
- * @param {string} [props.subtitle] - Custom description text
- * @param {string} [props.submitButtonText="Verify OTP"] - Text for submit button
+ * @param {"verify-email" | "forgot-password"} [props.mode="verify-email"] - Verification mode
+ * @param {string} [props.title] - Custom title for the screen
+ * @param {string|React.ReactNode} [props.subtitle] - Custom description text
+ * @param {string} [props.submitButtonText] - Text for submit button
  * @param {string} [props.backText="Back to Login"] - Text for back button
- * @param {Function} props.onBack - Navigation callback to go back
- * @param {Function} props.onVerify - Async callback (otpString) => Promise<void>
- * @param {Function} [props.onResend] - Async callback () => Promise<void>
- * @param {number} [props.timerDuration=60] - Timer in seconds before resend is allowed (default 60s / 1 min)
+ * @param {Function} [props.onBack] - Navigation callback to go back
+ * @param {Function} [props.onVerify] - Optional custom async callback (otpString) => Promise<void>
+ * @param {Function} [props.onResend] - Optional custom async callback () => Promise<void>
+ * @param {Function} [props.onSuccess] - Optional callback after successful verification
+ * @param {number} [props.timerDuration=60] - Timer in seconds before resend is allowed (default 60s)
  */
 const CommonOtpVerification = ({
   email,
-  title = "Verify OTP",
+  mode = "verify-email",
+  title,
   subtitle,
-  submitButtonText = "Verify OTP",
+  submitButtonText,
   backText = "Back to Login",
   timerDuration = 60,
   onBack,
   onVerify,
   onResend,
+  onSuccess,
 }) => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -114,6 +132,42 @@ const CommonOtpVerification = ({
     try {
       if (onVerify) {
         await onVerify(otpValue);
+        if (onSuccess) onSuccess();
+      } else if (mode === "forgot-password") {
+        await verifyOtpApi(email, otpValue);
+        setToastMsg("OTP verified successfully!");
+        setShowToast(true);
+        setTimeout(() => {
+          if (onSuccess) {
+            onSuccess({ email, otp: otpValue });
+          } else {
+            navigate(routes.CHANGE_PASSWORD, { state: { email, otp: otpValue } });
+          }
+        }, 800);
+      } else {
+        // mode === "verify-email"
+        const data = await verifyEmailOtpApi(email, otpValue);
+        if (data?.response) {
+          const user = {
+            id: data.response.id,
+            name: data.response.name,
+            email: data.response.email,
+            subscriptionPlan: data.response.subscriptionPlan,
+            profileImageUrl: data.response.profileImageUrl,
+          };
+          if (data.response.jwtToken) {
+            dispatch(setCredentials({ token: data.response.jwtToken, user }));
+          }
+        }
+        setToastMsg("Email verified successfully! Redirecting...");
+        setShowToast(true);
+        setTimeout(() => {
+          if (onSuccess) {
+            onSuccess(data);
+          } else {
+            navigate(routes.DASHBOARD, { replace: true });
+          }
+        }, 1000);
       }
     } catch (err) {
       const apiError =
@@ -128,12 +182,18 @@ const CommonOtpVerification = ({
   };
 
   const handleResendOtp = async () => {
-    if (resendTimer > 0 || isResending || !onResend) return;
+    if (resendTimer > 0 || isResending) return;
 
     setIsResending(true);
     setError("");
     try {
-      await onResend();
+      if (onResend) {
+        await onResend();
+      } else if (mode === "forgot-password") {
+        await forgotPasswordApi(email);
+      } else {
+        await resendVerificationApi(email);
+      }
       setToastMsg("Verification OTP resent to your email!");
       setShowToast(true);
       setResendTimer(timerDuration);
@@ -216,14 +276,19 @@ const CommonOtpVerification = ({
             {/* OTP Form */}
             <div className="max-w-[420px] w-full mx-auto flex-grow flex flex-col justify-center py-8 md:py-0">
               <h2 className="text-3xl sm:text-[2.75rem] font-medium text-gray-900 mb-4 tracking-tight text-center md:text-left leading-tight">
-                {title}
+                {title || (mode === "forgot-password" ? "Verify OTP" : "Verify Your Email")}
               </h2>
               <p className="text-gray-500 mb-8 sm:mb-10 text-center md:text-left">
                 {subtitle ? (
                   subtitle
+                ) : mode === "forgot-password" ? (
+                  <>
+                    We have sent a 6-digit password reset code to: <br />{" "}
+                    <span className="font-semibold text-gray-800">{email}</span>
+                  </>
                 ) : (
                   <>
-                    We have sent a 6-digit OTP to your email: <br />{" "}
+                    We have sent a 6-digit OTP to activate your account: <br />{" "}
                     <span className="font-semibold text-gray-800">{email}</span>
                   </>
                 )}
@@ -256,10 +321,13 @@ const CommonOtpVerification = ({
                     isLoading ? "opacity-70 cursor-not-allowed" : ""
                   }`}>
                   <CheckCircle2 size={18} strokeWidth={2} />
-                  {isLoading ? "Verifying..." : submitButtonText}
+                  {isLoading
+                    ? "Verifying..."
+                    : submitButtonText ||
+                      (mode === "forgot-password" ? "Verify Code" : "Verify & Activate")}
                 </button>
 
-                {onResend && (
+                {(onResend || email) && (
                   <p className="text-center text-sm text-gray-500 mt-4">
                     Didn't receive code?{" "}
                     {resendTimer > 0 ? (

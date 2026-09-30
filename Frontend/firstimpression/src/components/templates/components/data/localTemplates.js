@@ -4,7 +4,7 @@
  */
 
 export const modernSidebarTemplate = {
-  id: "tpl-modern-sidebar",
+  id: "tpl-modern-sidebar", 
   slug: "modern-sidebar",
   name: "Modern Sidebar",
   description: "A contemporary two-column layout featuring an elegant dark sidebar and structured main timeline.",

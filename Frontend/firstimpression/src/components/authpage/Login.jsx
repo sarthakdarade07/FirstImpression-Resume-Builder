@@ -10,8 +10,6 @@ import { HashLink } from "react-router-hash-link";
 import useLogin from "./hooks/useLogin";
 import { routes } from "../../routes/routes";
 
-
-
 const Login = ({ onNavigateToSignUp, onNavigateToForgotPassword }) => {
   const {
     emailOrUsername,
@@ -193,11 +191,12 @@ const Login = ({ onNavigateToSignUp, onNavigateToForgotPassword }) => {
                 )}
               </form>
             </div>
+              
 
             {/* Footer */}
 
             <div className="flex flex-col-reverse md:flex-row justify-between items-center text-[10px] sm:text-[11px] text-gray-400 font-medium gap-4 md:gap-0 mt-8 md:mt-0">
-              <p>© 2005-2025 firstimpression Inc.</p>
+              <p>©2025 firstimpression Inc.</p>
 
               <div className="flex items-center gap-4 sm:gap-6">
                 <a

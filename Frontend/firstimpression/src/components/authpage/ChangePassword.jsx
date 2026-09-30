@@ -13,15 +13,15 @@ import { routes } from "../../routes/routes";
  * Pure UI component. All state and API logic lives in useChangePassword.
  *
  * @param {Object} props
- * @param {string} props.email - email associated with the reset request (display only)
- * @param {string} props.resetToken - token used to authorize the password reset
+ * @param {string} props.email - email associated with the reset request
+ * @param {string} props.otp - OTP used to authorize the password reset
  * @param {Function} [props.onBackToLogin] - callback to navigate back to login
  * @param {Function} [props.onSuccess] - callback invoked after a successful reset
  * @param {string} [props.redirectTo=routes.DASHBOARD] - path to redirect to upon password reset
  */
 const ChangePassword = ({
   email,
-  resetToken,
+  otp,
   onBackToLogin,
   onSuccess,
   redirectTo = routes.DASHBOARD,
@@ -42,7 +42,7 @@ const ChangePassword = ({
     closeToast,
     clearError,
     handleChangePassword,
-  } = useChangePassword({ resetToken, onBackToLogin, onSuccess, redirectTo });
+  } = useChangePassword({ email, otp, onBackToLogin, onSuccess, redirectTo });
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-[var(--auth-bg-padding)] font-sans">

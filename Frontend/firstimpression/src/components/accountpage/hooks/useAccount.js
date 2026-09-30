@@ -1,6 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setUser } from '../../../redux/slices/authslice';
+import api from '../../../apis/axios';
+import { verifyEmailOtpApi } from '../../authpage/services/authService';
 
 
 /**
@@ -15,14 +17,12 @@ const useAccount = () => {
   const dispatch = useDispatch();
   const API_BASE_URL =
     import.meta.env?.VITE_BACKEND_BASE_URL ||
-    process.env?.REACT_APP_BACKEND_BASE_URL 
-    // 'http://localhost:8080';
+    process.env?.REACT_APP_BACKEND_BASE_URL;
 
   const [activeTab, setActiveTab] = useState('general');
-
+  const [timer,setTimer] = useState(60);
   // Multi-step reset state: 1 = Request OTP, 2 = Verify OTP, 3 = New Password
   const [step, setStep] = useState(1);
-  const [resetToken, setResetToken] = useState('');
 
   // Form values
   const [otp, setOtp] = useState(new Array(6).fill(''));
@@ -36,6 +36,7 @@ const useAccount = () => {
   const [showToast, setShowToast] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [msg, setMsg] = useState('');
+  const [isResending,setIsResending] = useState(false);
 
   const inputRefs = useRef([]);
 
@@ -49,6 +50,53 @@ const useAccount = () => {
     user?.name && user.name.split(' ').length > 1
       ? user.name.split(' ').slice(1).join(' ')
       : '';
+
+
+   //for otp resend
+   
+     useEffect(() => {
+       let interval = null;
+       if (step==2 && timer > 0) {
+         interval = setInterval(() => { 
+           setTimer((prev) => prev - 1);
+         }, 1000);
+       }
+       return () => clearInterval(interval);
+     }, [step,timer]);
+ 
+      const handleResendOtp = async (e) => {
+        if (e) e.preventDefault();
+        if (timer > 0) return;        
+        try {
+          setIsResending(true);
+          const response = await api.post("/api/auth/forgot-password", {
+            email: user?.email,
+          });
+          setIsSuccess(true);
+          setMsg(
+            response.data?.message || "OTP resent to your registered email!",
+          );
+          setShowToast(true);
+          setIsResending(false);
+          setTimeout(() => setShowToast(false), 3000);
+          // Reset input boxes and restart timer
+          setOtp(new Array(6).fill(""));
+          setTimer(60);
+        } catch (err) {
+          setIsSuccess(false);
+          setIsResending(false);
+          setMsg(
+            err.response?.data?.message ||
+              err.response?.data?.error ||
+              err.message ||
+              "Failed to resend OTP",
+          );
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 3000);
+        } finally {
+          setIsLoading(false);
+        }
+      };
 
   // 1. Profile Image Upload
   const handleImageUpload = async (e) => {
@@ -144,10 +192,10 @@ const useAccount = () => {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send OTP');
+        throw new Error('Failed to send OTP');
       }
       setIsSuccess(true);
-      setMsg(data.message || 'OTP sent to your email!');
+      setMsg('OTP sent to your email!');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       setStep(2);
@@ -161,43 +209,19 @@ const useAccount = () => {
     }
   };
 
-  // 4. Step 2: Verify OTP
-  const handleVerifyOtp = async (e) => {
+
+  // 4. Step 2: Validate OTP and advance to Step 3
+  const handleVerifyOtp = (e) => {
     if (e) e.preventDefault();
-    const otpValue = otp.join('');
+    const otpValue = otp.join("");
     if (otpValue.length < 6) {
       setIsSuccess(false);
-      setMsg('Please enter the 6-digit OTP.');
+      setMsg("Please enter the complete 6-digit OTP.");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       return;
     }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, otp: otpValue }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Invalid or expired OTP');
-      }
-      setResetToken(data.response.resetToken);
-      setIsSuccess(true);
-      setMsg(data.message || 'OTP verified successfully!');
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-      setStep(3);
-    } catch (err) {
-      setIsSuccess(false);
-      setMsg(err.message);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-    } finally {
-      setIsLoading(false);
-    }
+    setStep(3);
   };
 
   // 5. Step 3: Change Password
@@ -218,19 +242,26 @@ const useAccount = () => {
       return;
     }
 
+    const otpValue = otp.join("");
+    if (otpValue.length < 6) {
+      setIsSuccess(false);
+      setMsg("Please enter the 6-digit OTP.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      setStep(2);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resetToken, newPassword }),
+      const response = await api.post('/api/auth/reset-password', {
+        email: user?.email,
+        otp: otpValue,
+        newPassword,
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to reset password');
-      }
+
       setIsSuccess(true);
-      setMsg(data.message || 'Password successfully updated!');
+      setMsg(response.data?.message || 'Password successfully updated!');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
 
@@ -239,10 +270,14 @@ const useAccount = () => {
       setOtp(new Array(6).fill(''));
       setNewPassword('');
       setConfirmPassword('');
-      setResetToken('');
     } catch (err) {
       setIsSuccess(false);
-      setMsg(err.message);
+      setMsg(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        'Failed to reset password'
+      );
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } finally {
@@ -265,7 +300,9 @@ const useAccount = () => {
       }
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      handleVerifyOtp(e);
+      if (step === 2) {
+        handleVerifyOtp(e);
+      }
     }
   };
 
@@ -278,7 +315,6 @@ const useAccount = () => {
     setActiveTab,
     step,
     setStep,
-    resetToken,
     otp,
     newPassword,
     setNewPassword,
@@ -293,6 +329,8 @@ const useAccount = () => {
     isSuccess,
     msg,
     inputRefs,
+    timer,
+    isResending,
 
     // Handlers
     toggleShowNew,
@@ -301,6 +339,7 @@ const useAccount = () => {
     closeToast,
     handleImageUpload,
     handleRemoveImage,
+    handleResendOtp,
     handleRequestReset,
     handleVerifyOtp,
     handleChangePassword,

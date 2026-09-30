@@ -7,9 +7,6 @@ const api = axios.create({
     process.env?.REACT_APP_BACKEND_BASE_URL ,
     // "http://localhost:8080",
   timeout: 60000,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 

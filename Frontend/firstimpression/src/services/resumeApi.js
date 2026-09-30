@@ -1,5 +1,5 @@
 import api from "../apis/axios";
-import { sampleResumeData } from "../components/templates/data/sampleResumeData";
+import { sampleResumeData } from "../components/templates/components/data/sampleResumeData";
 
 const ACTIVE_DRAFT_KEY = "firstimpression_active_resume_draft";
 

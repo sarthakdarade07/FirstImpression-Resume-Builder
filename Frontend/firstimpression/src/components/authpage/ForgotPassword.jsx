@@ -194,7 +194,7 @@ const ForgotPassword = ({
                     and your new password.
                   </p>
 
-                  <form
+                  <form 
                     className="space-y-4 sm:space-y-5"
                     onSubmit={handleResetPassword}>
                     {/* 6-digit OTP Inputs */}
