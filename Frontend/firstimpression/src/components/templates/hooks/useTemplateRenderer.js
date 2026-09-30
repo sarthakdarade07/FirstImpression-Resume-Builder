@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import templateApi from '../services/templateApi';
-import fallbackTemplates from '../data/localTemplates';
+import fallbackTemplates from '../components/data/localTemplates';
 
 /**
  * Hook to manage template browsing, selection, and switching
