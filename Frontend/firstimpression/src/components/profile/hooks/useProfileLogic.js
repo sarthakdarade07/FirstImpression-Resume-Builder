@@ -3,15 +3,16 @@ import { useSelector, useDispatch } from "react-redux";
 import api from "../../../apis/axios";
 import { setUser } from "../../../redux/slices/authslice";
 import { fetchEducationMetadata } from "../../../redux/slices/metadataSlice";
+import { fetchUserProfile } from "../../../redux/thunks/profileThunks";
 
 export const useProfileLogic = () => {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-  const [profileData, setProfileData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Read Education Metadata directly from Redux Store
+  // Read Profile and Metadata directly from Redux Store
+  const profileData = useSelector((state) => state.profile.profile);
+  const loading = useSelector((state) => state.profile.loading);
+  const error = useSelector((state) => state.profile.error);
   const { educationTypes, scoreTypes } = useSelector((state) => state.metadata);
 
   // Toast State
@@ -57,30 +58,14 @@ export const useProfileLogic = () => {
     }));
   };
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      if (!token) {
-        setError("No authentication token found");
-        setLoading(false);
-        return;
-      }
-
-      const response = await api.get("/api/profile/get-profile");
-      const data = response.data;
-      setProfileData(data.message || data);
-    } catch (err) {
-      console.error(err);
-      const apiError =
-        err.response?.data?.error || err.response?.data?.message || err.message;
-      setError(apiError || "Failed to fetch profile data");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  const fetchProfile = useCallback((force = true) => {
+    if (!token) return;
+    dispatch(fetchUserProfile(force ? { forceRefresh: true } : undefined));
+  }, [token, dispatch]);
 
   useEffect(() => {
     dispatch(fetchEducationMetadata());
-    fetchProfile();
+    fetchProfile(false);
   }, [dispatch, fetchProfile]);
 
   // 1. Save / Update Personal Information (and User Name)

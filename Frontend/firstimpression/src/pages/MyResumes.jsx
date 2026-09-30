@@ -1,33 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, FileText, Trash2, Clock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-import { resumeApi } from "../services/resumeApi";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUserResumes, deleteResumeThunk } from "../redux/thunks/resumeThunks";
 import { routes } from "../routes/routes";
 
 const MyResumes = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [userResumes, setUserResumes] = useState([]);
-  const [loadingResumes, setLoadingResumes] = useState(false);
-
-  const loadResumes = async () => {
-    setLoadingResumes(true);
-
-    try {
-      const resumes = await resumeApi.getUserResumes();
-      setUserResumes(resumes || []);
-    } catch (error) {
-      console.error("Failed to load resumes:", error);
-    } finally {
-      setLoadingResumes(false);
-    }
-  };
+  const userResumes = useSelector((state) => state.resume.userResumes || []);
+  const loadingResumes = useSelector((state) => state.resume.loadingList || false);
 
   useEffect(() => {
-    loadResumes();
-  }, []);
+    dispatch(fetchUserResumes());
+  }, [dispatch]);
 
   const handleDeleteResume = async (e, id) => {
     e.stopPropagation();
@@ -36,12 +24,7 @@ const MyResumes = () => {
       return;
     }
 
-    try {
-      await resumeApi.deleteResume(id);
-      await loadResumes();
-    } catch (error) {
-      console.error("Failed to delete resume:", error);
-    }
+    dispatch(deleteResumeThunk(id));
   };
 
   const containerVariants = {

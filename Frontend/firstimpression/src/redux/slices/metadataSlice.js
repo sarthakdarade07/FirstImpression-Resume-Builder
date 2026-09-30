@@ -23,6 +23,19 @@ export const fetchEducationMetadata = createAsyncThunk(
       }
     }
   },
+  {
+    condition: (arg, { getState }) => {
+      if (arg?.forceRefresh) return true;
+      const { metadata } = getState();
+      if (
+        metadata?.educationTypes?.length > 0 &&
+        metadata?.scoreTypes?.length > 0
+      ) {
+        return false; // Already cached in Redux - skip network call!
+      }
+      return true;
+    },
+  }
 );
 
 const initialState = {

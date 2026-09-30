@@ -39,6 +39,10 @@ import {
   setResumeMetadata,
   setResumeTitle as setReduxResumeTitle,
 } from '../redux/slices/resumeSlice';
+import {
+  createResumeThunk,
+  updateResumeThunk,
+} from '../redux/thunks/resumeThunks';
 import ResumeAssistantDrawer from '../components/resume/ResumeAssistantDrawer';
 
 export default function ResumeStudioPage() {
@@ -191,13 +195,20 @@ export default function ResumeStudioPage() {
     const dataToSave = activeResumeData;
     try {
       if (resumeId) {
-        const updated = await resumeApi.updateResume(resumeId, {
-          title: resumeTitle || `${authUser?.name || 'My'} Resume`,
-          resumeDataJson: JSON.stringify(dataToSave),
-          templateSlug: activeSlug
-        });
-        if (updated) {
-          setLoadedResume(updated);
+        const titleToSave = resumeTitle || `${authUser?.name || 'My'} Resume`;
+        const res = await dispatch(
+          updateResumeThunk({
+            id: resumeId,
+            updates: {
+              title: titleToSave,
+              resumeDataJson: JSON.stringify(dataToSave),
+              templateSlug: activeSlug,
+            },
+          })
+        ).unwrap();
+
+        if (res?.updated) {
+          setLoadedResume(res.updated);
           dispatch(setSavedResume(dataToSave));
         }
         setLastSaved(new Date());
@@ -207,7 +218,14 @@ export default function ResumeStudioPage() {
       } else {
         // Create new resume if not yet created, saving the current edited content
         const title = resumeTitle || `${authUser?.name || authUser?.fullName || 'My'} ${currentTemplate?.name || 'Resume'}`;
-        const created = await resumeApi.createResumeFromTemplate(currentTemplate, title, dataToSave);
+        const created = await dispatch(
+          createResumeThunk({
+            template: currentTemplate,
+            customTitle: title,
+            customResumeData: dataToSave,
+            user: authUser,
+          })
+        ).unwrap();
         setLoadedResume(created);
         setResumeTitle(created.title);
         dispatch(setSavedResume(dataToSave));
@@ -240,7 +258,14 @@ export default function ResumeStudioPage() {
           return;
         }
       const title = resumeTitle || `${authUser?.name || authUser?.fullName || 'My'} ${currentTemplate?.name || 'Resume'}`;
-      const created = await resumeApi.createResumeFromTemplate(currentTemplate, title, null, authUser);
+      const created = await dispatch(
+        createResumeThunk({
+          template: currentTemplate,
+          customTitle: title,
+          customResumeData: null,
+          user: authUser,
+        })
+      ).unwrap();
       
       const populatedData = created?.resumeDataJson
         ? (typeof created.resumeDataJson === 'string' ? JSON.parse(created.resumeDataJson) : created.resumeDataJson)

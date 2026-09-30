@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { uploadJd, fetchJdByResumeId } from "../thunks/jdThunk";
+import { logout } from "./authslice";
 
 const initialState = {
   jd: null,
@@ -77,7 +78,12 @@ const jdSlice = createSlice({
       .addCase(fetchJdByResumeId.rejected, (state, action) => {
         state.fetching = false;
         state.error = action.payload || "Failed to fetch JD";
-      });
+      })
+
+      // =========================
+      // LOGOUT CLEANUP
+      // =========================
+      .addCase(logout, () => initialState);
    }
 });
 

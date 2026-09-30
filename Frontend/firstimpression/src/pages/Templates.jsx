@@ -2,52 +2,28 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Eye, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-
-import { templateApi } from "../components/templates/services/templateApi";
-import { fallbackTemplates } from "../components/templates/components/data/localTemplates";
-import { resumeApi } from "../services/resumeApi";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchTemplates } from "../redux/thunks/templateThunks";
+import { createResumeThunk } from "../redux/thunks/resumeThunks";
 import { routes } from "../routes/routes";
 
 const Templates = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-
-  const [templatesList, setTemplatesList] = useState(fallbackTemplates);
+  const templatesList = useSelector(
+    (state) => state.template?.templatesList || []
+  );
+  const loadingTemplates = useSelector(
+    (state) => state.template?.loadingList || false
+  );
 
   const [selectedCategory, setSelectedCategory] = useState("All");
-
-  const [loadingTemplates, setLoadingTemplates] = useState(false);
-
   const [creatingForSlug, setCreatingForSlug] = useState(null);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadTemplates = async () => {
-      setLoadingTemplates(true);
-
-      try {
-        const list = await templateApi.getTemplates();
-
-        if (isMounted && Array.isArray(list) && list.length > 0) {
-          setTemplatesList(list);
-        }
-      } catch (error) {
-        console.warn("Failed to load templates:", error);
-      } finally {
-        if (isMounted) {
-          setLoadingTemplates(false);
-        }
-      }
-    };
-
-    loadTemplates();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    dispatch(fetchTemplates());
+  }, [dispatch]);
 
   const handleUseTemplate = async (template) => {
     setCreatingForSlug(template.slug);
@@ -58,7 +34,9 @@ const Templates = () => {
     }
 
     try {
-      const created = await resumeApi.createResumeFromTemplate(template);
+      const created = await dispatch(
+        createResumeThunk({ template, user })
+      ).unwrap();
 
       navigate(
         `${routes.RESUME}?template=${template.slug}&resumeId=${created.id}&edit=true`,
