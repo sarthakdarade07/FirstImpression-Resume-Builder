@@ -57,6 +57,16 @@ const MyResumes = () => {
     <>
       {/* Stats */}
 
+      <meta
+        name="title"
+        content="AI Resume Builder | ATS-Friendly Resumes | FirstImpression"
+      />
+
+      <meta
+        name="description"
+        content="Build professional, ATS-friendly resumes with FirstImpression. Use AI to tailor your resume to job descriptions, optimize keywords and bullet points, check your ATS score, customize templates, and export to PDF."
+      />
+
       <motion.div
         variants={containerVariants}
         initial="hidden"

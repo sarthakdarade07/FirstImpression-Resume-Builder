@@ -52,34 +52,45 @@ const DashboardPage = ({ initialTab }) => {
         : "evening";
 
   return (
-    <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
-      <div className="space-y-10 pb-16 pt-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-8">
-          <div>
-            <p className="text-theme-red font-semibold text-sm mb-2 tracking-wide uppercase">
-              {currentDate}
-            </p>
+    <>
+      <title>Dashboard | FirstImpression</title>
 
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-              Good {greeting},{" "}
-              {user?.name ? user.name.split(" ")[0] : "Creator"}.
-            </h1>
+      <meta
+        name="description"
+        content="Manage your resumes, customize professional templates, check ATS scores, tailor resumes with AI, and create job-ready resumes with FirstImpression."
+      />
 
-            <p className="text-gray-500 mt-2 text-lg">
-              Here is what's happening with your job applications today.
-            </p>
+      <meta name="robots" content="noindex, nofollow" />
+
+      <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+        <div className="space-y-10 pb-16 pt-6">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-8">
+            <div>
+              <p className="text-theme-red font-semibold text-sm mb-2 tracking-wide uppercase">
+                {currentDate}
+              </p>
+
+              <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+                Good {greeting},{" "}
+                {user?.name ? user.name.split(" ")[0] : "Creator"}.
+              </h1>
+
+              <p className="text-gray-500 mt-2 text-lg">
+                Here is what's happening with your job applications today.
+              </p>
+            </div>
           </div>
+
+          {/* TAB CONTENT */}
+          {activeTab === "My Resumes" && <MyResumesTab />}
+
+          {activeTab === "Templates" && <TemplatesTab dailyJob={dailyJob} />}
+
+          {activeTab === "ATS Score" && <AtsScoreTab />}
         </div>
-
-        {/* TAB CONTENT */}
-        {activeTab === "My Resumes" && <MyResumesTab />}
-
-        {activeTab === "Templates" && <TemplatesTab dailyJob={dailyJob} />}
-
-        {activeTab === "ATS Score" && <AtsScoreTab />}
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </>
   );
 };
 

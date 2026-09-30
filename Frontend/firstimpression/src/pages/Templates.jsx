@@ -64,6 +64,16 @@ const Templates = () => {
 
   return (
     <>
+      <title>
+        Professional Resume Templates | ATS-Friendly Templates | FirstImpression
+      </title>
+
+      <meta
+        name="description"
+        content="Explore professional, ATS-friendly resume templates with FirstImpression. Choose from modern, clean, and customizable designs, personalize your resume, and export it as a PDF."
+      />
+
+      <meta name="robots" content="index, follow" />
       {/* Header */}
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
