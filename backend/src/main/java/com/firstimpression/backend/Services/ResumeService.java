@@ -422,11 +422,12 @@ public class ResumeService {
 				            IMPORTANT: Use ONLY the Master Profile as the source of truth; never invent or add fake data, technologies, features, metrics, achievements, or responsibilities—especially in project descriptions; only improve using existing facts.
 
 				INSTRUCTIONS:
-				1. Tailor and enhance ONLY these 4 sections (workExperiences, projects, skills, certifications) to align strongly with the Target Job Requirements while strictly respecting the candidate's real background.
-				2. Under "alteredResumeData", output an object containing the 4 updated sections: "workExperiences", "projects", "skills", and "certifications".
+				1. Tailor and enhance sections to align strongly with the Target Job Requirements while strictly respecting the candidate's real background.
+				2. Under "alteredResumeData", output an object containing the updated sections.
 				3. Under "skillsNeed", list ONLY the key skills/technologies from the Job Description that the candidate is MISSING (unmatched skills) as a simple JSON string array: ["Skill 1", "Skill 2"] (3-4 most important skills).
 				4. Under "gapInJdAndResume", list identified gaps between JD and candidate background. (3-4 most important gaps)
-                5. Most Important: Rewrite each project description as exactly 4-5 concise ATS-focused bullet points. Prioritize relevant JD skills while using only facts from the Master Profile. Never invent technologies, features, metrics, or responsibilities.
+                5. Select 4-5 most relevant projects for the job description.                
+                6. Most Important: Rewrite each project description as exactly 4-5 concise ATS-focused bullet points. Prioritize relevant JD skills while using only facts from the Master Profile. Never invent technologies, features, metrics, or responsibilities.
 				REQUIRED JSON SCHEMA:
 				{
 				  "alteredResumeData": {
