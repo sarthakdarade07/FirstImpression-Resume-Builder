@@ -20,6 +20,7 @@ export const fetchTemplates = createAsyncThunk(
     condition: (arg, { getState }) => {
       if (arg?.forceRefresh) return true;
       const { template } = getState();
+      if (template?.loadingList) return false;
       if (template?.isLoaded) {
         return false; // Skip network call - already cached
       }
@@ -49,6 +50,7 @@ export const fetchTemplateBySlug = createAsyncThunk(
       if (forceRefresh) return true;
       const slug = typeof slugArg === "object" ? slugArg.slug : slugArg;
       const { template } = getState();
+      if (template?.loadingTemplate) return false;
       if (template?.templatesBySlug?.[slug]?.htmlCode) {
         return false; // Skip network call - already cached in Redux!
       }

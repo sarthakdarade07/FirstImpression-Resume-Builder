@@ -27,6 +27,8 @@ export const fetchEducationMetadata = createAsyncThunk(
     condition: (arg, { getState }) => {
       if (arg?.forceRefresh) return true;
       const { metadata } = getState();
+      // In-flight guard: don't send another request if one is already loading
+      if (metadata?.loading) return false;
       if (
         metadata?.educationTypes?.length > 0 &&
         metadata?.scoreTypes?.length > 0

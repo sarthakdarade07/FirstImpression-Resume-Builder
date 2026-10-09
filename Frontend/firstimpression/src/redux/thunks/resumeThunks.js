@@ -19,6 +19,7 @@ export const fetchUserResumes = createAsyncThunk(
     condition: (arg, { getState }) => {
       if (arg?.forceRefresh) return true;
       const { resume } = getState();
+      if (resume?.loadingList) return false;
       if (resume?.isLoaded) {
         return false; // Skip network call - already cached
       }

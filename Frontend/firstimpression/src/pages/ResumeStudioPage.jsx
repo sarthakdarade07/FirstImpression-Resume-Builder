@@ -643,7 +643,7 @@ export default function ResumeStudioPage() {
 
         {/* Slide-over / Split Left Resume Content Editor Drawer */}
         {isEditorOpen && (
-          <aside className="print-hide shrink-0 fixed inset-y-0 left-0 z-40 w-full sm:w-[460px] max-w-full lg:static lg:z-20 lg:w-[440px] xl:w-[480px] h-full shadow-2xl lg:shadow-none flex">
+          <aside className="print-hide shrink-0 fixed inset-y-0 left-0 z-40 w-full sm:w-[460px] max-w-full lg:static lg:z-20 lg:w-[440px] xl:w-[480px] h-full  flex">
             <ResumeEditorPanel
               resumeData={activeResumeData}
               onChange={(newData) => {
